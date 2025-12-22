@@ -1,0 +1,357 @@
+# Olivenet The Things Stack Configuration
+# Production-ready configuration for 3000+ energy meters
+
+# =============================================================================
+# TLS Configuration
+# =============================================================================
+tls:
+  source: "${TLS_SOURCE}"
+  acme:
+    email: "${ACME_EMAIL}"
+    hosts:
+      - "${DOMAIN}"
+    default-host: "${DOMAIN}"
+    dir: "${ACME_DIR}"
+  # For file-based certificates, uncomment:
+  # root-ca: "${TLS_CA}"
+  # certificate: "${TLS_CERT}"
+  # key: "${TLS_KEY}"
+
+# =============================================================================
+# HTTP Server Configuration
+# =============================================================================
+http:
+  listen: ":1885"
+  listen-tls: ":8885"
+  cookie:
+    block-key: ""  # Auto-generated
+    hash-key: ""   # Auto-generated
+  static:
+    mount: /assets
+    search-path:
+      - /srv/ttn-lorawan/public
+
+# =============================================================================
+# gRPC Configuration
+# =============================================================================
+grpc:
+  listen: ":1884"
+  listen-tls: ":8884"
+
+# =============================================================================
+# Cluster Configuration
+# =============================================================================
+cluster:
+  name: "${CLUSTER_ID}"
+  identity-server: "localhost:8884"
+  gateway-server: "localhost:8884"
+  network-server: "localhost:8884"
+  application-server: "localhost:8884"
+  join-server: "localhost:8884"
+
+# =============================================================================
+# Redis Configuration
+# =============================================================================
+redis:
+  address: "redis:6379"
+  password: "${REDIS_PASSWORD}"
+  database: 0
+  namespace:
+    - ttn
+    - v3
+
+# =============================================================================
+# Blob Storage Configuration
+# =============================================================================
+blob:
+  provider: local
+  local:
+    directory: "${BLOB_LOCAL_DIRECTORY}"
+
+# =============================================================================
+# Events Configuration
+# =============================================================================
+events:
+  backend: redis
+
+# =============================================================================
+# Frequency Plans
+# =============================================================================
+frequency-plans:
+  config-source: directory
+  directory: /srv/ttn-lorawan/lorawan-frequency-plans
+
+# =============================================================================
+# Device Repository
+# =============================================================================
+device-repository:
+  directory: /srv/ttn-lorawan/lorawan-devices
+
+# =============================================================================
+# Identity Server Configuration
+# =============================================================================
+is:
+  # Note: database-uri is overridden by TTN_LW_IS_DATABASE_URI env var in docker-compose
+  database-uri: "postgres://ttn:password@postgres:5432/ttn_lorawan?sslmode=disable"
+
+  # OAuth configuration
+  oauth:
+    ui:
+      canonical-url: "https://${DOMAIN}/oauth"
+      is:
+        base-url: "https://${DOMAIN}/api/v3"
+
+  # Email configuration
+  email:
+    sender-name: "The Things Stack"
+    sender-address: "${SMTP_FROM}"
+    network:
+      name: "Olivenet LoRaWAN"
+      console-url: "https://${DOMAIN}/console"
+      identity-server-url: "https://${DOMAIN}"
+    smtp:
+      address: "${SMTP_HOST}:${SMTP_PORT}"
+      username: "${SMTP_USERNAME}"
+      password: "${SMTP_PASSWORD}"
+      connections: 10
+
+  # User registration
+  user-registration:
+    enabled: true
+    admin-approval:
+      required: true
+    contact-info-validation:
+      required: true
+    password-requirements:
+      min-length: 10
+      max-length: 1000
+      min-uppercase: 1
+      min-digits: 1
+
+  # Profile picture
+  profile-picture:
+    disable-upload: false
+    use-gravatar: true
+
+  # Admin rights
+  admin-rights:
+    all: true
+
+# =============================================================================
+# Gateway Server Configuration
+# =============================================================================
+gs:
+  require-registered-gateways: true
+
+  # UDP Packet Forwarder
+  udp:
+    listeners:
+      - ":1700"
+    schedule-late-time: 800ms
+    schedule-any-delay: 530ms
+    scheduling:
+      delay-tolerance: 10ms
+    workers: 8
+
+  # BasicStation (WebSocket)
+  basic-station:
+    listen: ":1887"
+    listen-tls: ":${GS_BASICSTATION_PORT}"
+    use-traffic-tls-address: true
+    allow-unauthenticated: false
+
+  # MQTT Protocol
+  mqtt:
+    listen: ":1883"
+    listen-tls: ":${GS_MQTT_PORT}"
+    public-address: "${DOMAIN}:${GS_MQTT_PORT}"
+    public-tls-address: "${DOMAIN}:${GS_MQTT_PORT}"
+
+  # MQTT v2 (Legacy)
+  mqtt-v2:
+    listen: ":1881"
+    listen-tls: ":8881"
+
+  # Gateway status update rate limit
+  update-gateway-location-debounce-time: 5s
+  update-connection-stats-debounce-time: 30s
+
+  # Packet broker (optional)
+  # packet-broker:
+  #   enabled: false
+
+# =============================================================================
+# Network Server Configuration
+# =============================================================================
+ns:
+  net-id: "${NET_ID}"
+  cluster-id: "${CLUSTER_ID}"
+  dev-addr-prefixes:
+    - "${DEV_ADDR_PREFIX}"
+
+  # Deduplication
+  deduplication-window: 200ms
+  cooldown-window: 2s
+
+  # Downlink
+  downlink-priorities:
+    join-accept: highest
+    mac-commands: higher
+    max-application-downlink: lower
+
+  # ADR (Adaptive Data Rate)
+  default-mac-settings:
+    adr:
+      mode:
+        dynamic:
+          channel-steering:
+            mode: disabled
+          margin: 15dB
+    adr-margin: 15
+    class-b-timeout: 0s
+    class-c-timeout: 5s
+    desired-rx1-delay: RX_DELAY_5
+    rx1-delay: RX_DELAY_5
+    rx1-data-rate-offset: 0
+    rx2-data-rate-index: 3
+    rx2-frequency: 869525000
+    ping-slot-frequency: 869525000
+    ping-slot-data-rate-index: 3
+    status-count-periodicity: 200
+    status-time-periodicity: 86400s
+
+  # Interop (optional)
+  # interop:
+  #   config-source: file
+  #   blob:
+  #     bucket: /srv/ttn-lorawan/interop
+
+# =============================================================================
+# Application Server Configuration
+# =============================================================================
+as:
+  # Webhooks
+  webhooks:
+    target: direct
+    timeout: 10s
+    queue-size: ${WEBHOOK_QUEUE_SIZE}
+    workers: ${WEBHOOK_WORKERS}
+    retry:
+      enabled: true
+      max-attempts: 5
+      initial-interval: 1m
+
+  # PubSub
+  pubsub:
+    providers:
+      # MQTT PubSub (enable if needed)
+      # mqtt:
+      #   address: "mqtt://mqtt.olivenet.com:1883"
+      #   username: "tts-pubsub"
+      #   password: "pubsub-password"
+
+  # Payload formatters
+  formatters:
+    max-parameter-length: 16384
+
+  # Device fetcher (for AS to know about devices)
+  device-fetcher:
+    circuitbreaker:
+      reset-timeout: 1m
+      threshold: 5
+
+# =============================================================================
+# Join Server Configuration
+# =============================================================================
+js:
+  join-eui-prefixes:
+    - "0000000000000000/0"
+
+  # Device key vault
+  device-kek-label: ""
+
+# =============================================================================
+# Console Configuration
+# =============================================================================
+console:
+  ui:
+    canonical-url: "https://${DOMAIN}/console"
+    is:
+      base-url: "https://${DOMAIN}/api/v3"
+    gs:
+      base-url: "https://${DOMAIN}/api/v3"
+    ns:
+      base-url: "https://${DOMAIN}/api/v3"
+    as:
+      base-url: "https://${DOMAIN}/api/v3"
+    js:
+      base-url: "https://${DOMAIN}/api/v3"
+    edtc:
+      base-url: "https://${DOMAIN}/api/v3"
+    qrg:
+      base-url: "https://${DOMAIN}/api/v3"
+    account-url: "https://${DOMAIN}/oauth"
+    landing-url: "https://${DOMAIN}"
+    documentation-base-url: "https://www.thethingsindustries.com/docs"
+    support-link: "https://www.thethingsnetwork.org/forum"
+    stack-config:
+      is:
+        enabled: true
+        base-url: "https://${DOMAIN}/api/v3"
+      gs:
+        enabled: true
+        base-url: "https://${DOMAIN}/api/v3"
+      ns:
+        enabled: true
+        base-url: "https://${DOMAIN}/api/v3"
+      as:
+        enabled: true
+        base-url: "https://${DOMAIN}/api/v3"
+      js:
+        enabled: true
+        base-url: "https://${DOMAIN}/api/v3"
+
+  oauth:
+    authorize-url: "https://${DOMAIN}/oauth/authorize"
+    token-url: "https://${DOMAIN}/oauth/token"
+    logout-url: "https://${DOMAIN}/oauth/logout"
+    client-id: console
+    client-secret: "${CONSOLE_OAUTH_CLIENT_SECRET}"
+
+# =============================================================================
+# Device Claiming Configuration
+# =============================================================================
+dcs:
+  oauth:
+    authorize-url: "https://${DOMAIN}/oauth/authorize"
+    token-url: "https://${DOMAIN}/oauth/token"
+    logout-url: "https://${DOMAIN}/oauth/logout"
+    client-id: device-claiming
+    client-secret: "${DEVICE_CLAIMING_SECRET}"
+
+  ui:
+    canonical-url: "https://${DOMAIN}/claim"
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+log:
+  level: "${LOG_LEVEL}"
+  format: "${LOG_FORMAT}"
+
+# =============================================================================
+# Metrics Configuration
+# =============================================================================
+metrics:
+  prometheus:
+    enable: ${METRICS_ENABLED}
+
+# =============================================================================
+# Health/Debug Configuration
+# =============================================================================
+health:
+  listen: ":1885"
+
+debug:
+  pprof:
+    enable: ${PPROF_ENABLED}

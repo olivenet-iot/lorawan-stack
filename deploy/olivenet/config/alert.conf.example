@@ -1,0 +1,76 @@
+# =============================================================================
+# Olivenet TTS - Alert Configuration
+# =============================================================================
+# Copy this file to alert.conf and configure your alert channels
+#
+# cp alert.conf.example alert.conf
+# chmod 600 alert.conf
+# =============================================================================
+
+# =============================================================================
+# Telegram Configuration
+# =============================================================================
+# To get a bot token:
+#   1. Message @BotFather on Telegram
+#   2. Send /newbot and follow instructions
+#   3. Copy the API token
+#
+# To get chat ID:
+#   1. Add the bot to a group or start a conversation
+#   2. Visit: https://api.telegram.org/bot<TOKEN>/getUpdates
+#   3. Find the chat.id in the response
+
+TELEGRAM_BOT_TOKEN=""
+TELEGRAM_CHAT_ID=""
+
+# =============================================================================
+# Email Configuration
+# =============================================================================
+# Configure email recipient(s) for alerts
+# Multiple recipients can be comma-separated
+
+EMAIL_RECIPIENT=""
+EMAIL_FROM="noreply@olivenet.com"
+
+# SMTP command to use: sendmail, msmtp, or mail
+SMTP_CMD="sendmail"
+
+# For msmtp, you may need to configure ~/.msmtprc:
+# account olivenet
+# host smtp.olivenet.com
+# port 587
+# from noreply@olivenet.com
+# auth on
+# user noreply@olivenet.com
+# password yourpassword
+# tls on
+
+# =============================================================================
+# Webhook Configuration
+# =============================================================================
+# Generic webhook for integrations like Slack, Discord, PagerDuty, etc.
+
+WEBHOOK_URL=""
+WEBHOOK_METHOD="POST"
+
+# =============================================================================
+# Slack Webhook Example
+# =============================================================================
+# WEBHOOK_URL="https://hooks.slack.com/services/TXXXXX/BXXXXX/XXXXXXXXXXXXXXXX"
+
+# =============================================================================
+# Discord Webhook Example
+# =============================================================================
+# WEBHOOK_URL="https://discord.com/api/webhooks/000000000000000000/xxxxxxxxxxxxxxxxxxxx"
+
+# =============================================================================
+# PagerDuty Events API Example
+# =============================================================================
+# WEBHOOK_URL="https://events.pagerduty.com/v2/enqueue"
+# Note: PagerDuty requires specific payload format
+
+# =============================================================================
+# Custom Headers (optional)
+# =============================================================================
+# Add custom headers for authenticated webhooks
+# WEBHOOK_HEADERS="Authorization: Bearer yourtoken"

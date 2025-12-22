@@ -1,0 +1,178 @@
+# Olivenet The Things Stack - Development Docker Compose
+# Use this for local development and testing
+
+version: "3.8"
+
+services:
+  # ==========================================================================
+  # PostgreSQL Database (Development)
+  # ==========================================================================
+  postgres:
+    image: postgres:14-alpine
+    container_name: olivenet-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ttn
+      POSTGRES_PASSWORD: ttn_dev_password
+      POSTGRES_DB: ttn_lorawan_dev
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ttn -d ttn_lorawan_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # ==========================================================================
+  # Redis (Development)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: olivenet-dev-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # ==========================================================================
+  # The Things Stack (Development)
+  # ==========================================================================
+  stack:
+    image: thethingsnetwork/lorawan-stack:3.35
+    container_name: olivenet-dev-stack
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    entrypoint: ttn-lw-stack -c /config/ttn-lw-stack-dev.yml
+    command: start
+    environment:
+      # Database
+      TTN_LW_IS_DATABASE_URI: "postgres://ttn:ttn_dev_password@postgres:5432/ttn_lorawan_dev?sslmode=disable"
+
+      # Redis (no password in dev)
+      TTN_LW_REDIS_ADDRESS: "redis:6379"
+
+      # Blob storage
+      TTN_LW_BLOB_LOCAL_DIRECTORY: /srv/ttn-lorawan/public/blob
+
+      # Development logging
+      TTN_LW_LOG_LEVEL: debug
+      TTN_LW_LOG_FORMAT: console
+
+      # Disable TLS for local development
+      TTN_LW_TLS_SOURCE: ""
+
+      # Profiling enabled in dev
+      TTN_LW_DEBUG_PPROF_ENABLE: "true"
+
+      # Metrics enabled
+      TTN_LW_METRICS_PROMETHEUS_ENABLE: "true"
+
+    volumes:
+      # Development config
+      - ./config/ttn-lw-stack-dev.yml:/config/ttn-lw-stack-dev.yml:ro
+
+      # Blob storage
+      - blob_dev_data:/srv/ttn-lorawan/public/blob
+
+      # Mount source code for hot reload (optional)
+      # - ../../:/go/src/go.thethings.network/lorawan-stack
+
+    networks:
+      - dev-network
+    ports:
+      # HTTP (all services, no TLS)
+      - "1881:1881"   # OAuth
+      - "1882:1882"   # Account
+      - "1883:1883"   # MQTT
+      - "1884:1884"   # gRPC
+      - "1885:1885"   # HTTP/Console
+      - "1887:1887"   # BasicStation
+
+      # UDP Packet Forwarder
+      - "1700:1700/udp"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1885/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ==========================================================================
+  # MailHog (Email testing)
+  # ==========================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: olivenet-dev-mailhog
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"   # Web UI
+      - "127.0.0.1:1025:1025"   # SMTP
+    networks:
+      - dev-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  dev-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  blob_dev_data:
+    driver: local
+
+# =============================================================================
+# Development Notes
+# =============================================================================
+#
+# Start development stack:
+#   docker-compose -f docker-compose.dev.yml up -d
+#
+# View logs:
+#   docker-compose -f docker-compose.dev.yml logs -f stack
+#
+# Initialize database:
+#   docker-compose -f docker-compose.dev.yml exec stack ttn-lw-stack is-db migrate
+#
+# Create admin user:
+#   docker-compose -f docker-compose.dev.yml exec stack ttn-lw-stack is-db create-admin-user \
+#     --id admin --email admin@localhost.local
+#
+# Access services:
+#   Console: http://localhost:1885/console
+#   API: http://localhost:1885/api/v3
+#   OAuth: http://localhost:1881
+#   MailHog: http://localhost:8025
+#   Prometheus metrics: http://localhost:1885/metrics
+#   pprof: http://localhost:1885/debug/pprof/
+#
+# Test gateway connection:
+#   nc -vzu localhost 1700
+#
+# Stop and clean:
+#   docker-compose -f docker-compose.dev.yml down -v

@@ -1,0 +1,292 @@
+# =============================================================================
+# Olivenet TTS - Deployment Pipeline
+# =============================================================================
+# Deploys to staging or production environment
+# Trigger: Manual dispatch or tag push
+# =============================================================================
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_backup:
+        description: 'Skip pre-deployment backup'
+        required: false
+        default: false
+        type: boolean
+      skip_tests:
+        description: 'Skip smoke tests after deployment'
+        required: false
+        default: false
+        type: boolean
+
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DEPLOY_PATH: /opt/olivenet-tts
+
+jobs:
+  # ===========================================================================
+  # Validate
+  # ===========================================================================
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment
+        id: set-env
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            # Tag push - always production
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            # Manual dispatch
+            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate config syntax
+        run: |
+          # Install yamllint
+          pip install yamllint
+
+          # Validate YAML files
+          yamllint deploy/olivenet/docker-compose.yml
+          yamllint deploy/olivenet/config/ttn-lw-stack.yml
+
+      - name: Check required secrets
+        run: |
+          MISSING=""
+          [[ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]] && MISSING="$MISSING DEPLOY_SSH_KEY"
+          [[ -z "${{ secrets.DEPLOY_HOST }}" ]] && MISSING="$MISSING DEPLOY_HOST"
+          [[ -z "${{ secrets.DEPLOY_USER }}" ]] && MISSING="$MISSING DEPLOY_USER"
+
+          if [[ -n "$MISSING" ]]; then
+            echo "Missing required secrets:$MISSING"
+            exit 1
+          fi
+          echo "All required secrets present"
+
+  # ===========================================================================
+  # Backup
+  # ===========================================================================
+  backup:
+    name: Pre-Deploy Backup
+    runs-on: ubuntu-latest
+    needs: validate
+    if: ${{ !inputs.skip_backup }}
+    environment: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Run backup
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }} && ./deploy/olivenet/scripts/backup.sh --no-color"
+
+  # ===========================================================================
+  # Deploy
+  # ===========================================================================
+  deploy:
+    name: Deploy to ${{ needs.validate.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [validate, backup]
+    if: always() && needs.validate.result == 'success'
+    environment: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Pull latest code
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }} && git fetch origin && git checkout ${{ github.sha }} || git pull origin ${{ github.ref_name }}"
+
+      - name: Pull Docker images
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }}/deploy/olivenet && docker-compose pull"
+
+      - name: Deploy stack
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }}/deploy/olivenet && docker-compose up -d"
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+      - name: Run database migrations
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }}/deploy/olivenet && docker-compose exec -T stack ttn-lw-stack is-db migrate" || true
+
+  # ===========================================================================
+  # Verify
+  # ===========================================================================
+  verify:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [validate, deploy]
+    if: ${{ !inputs.skip_tests }}
+    environment: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Health check
+        run: |
+          # Run health check script
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }} && ./deploy/olivenet/scripts/health-check.sh --no-color" || {
+            echo "Health check failed!"
+            exit 1
+          }
+
+      - name: Smoke test - API endpoint
+        run: |
+          # Test API is responding
+          DOMAIN=$(ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "grep DOMAIN ${{ env.DEPLOY_PATH }}/deploy/olivenet/.env | cut -d= -f2")
+
+          if [[ -n "$DOMAIN" ]]; then
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${DOMAIN}/api/v3" || echo "000")
+            if [[ "$HTTP_CODE" != "200" && "$HTTP_CODE" != "401" ]]; then
+              echo "API endpoint returned $HTTP_CODE"
+              exit 1
+            fi
+            echo "API endpoint responding (HTTP $HTTP_CODE)"
+          else
+            echo "Could not determine domain, skipping API check"
+          fi
+
+      - name: Smoke test - Console
+        run: |
+          DOMAIN=$(ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "grep DOMAIN ${{ env.DEPLOY_PATH }}/deploy/olivenet/.env | cut -d= -f2")
+
+          if [[ -n "$DOMAIN" ]]; then
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${DOMAIN}/console" || echo "000")
+            if [[ "$HTTP_CODE" != "200" && "$HTTP_CODE" != "302" ]]; then
+              echo "Console returned $HTTP_CODE"
+              exit 1
+            fi
+            echo "Console responding (HTTP $HTTP_CODE)"
+          fi
+
+  # ===========================================================================
+  # Rollback (on failure)
+  # ===========================================================================
+  rollback:
+    name: Rollback
+    runs-on: ubuntu-latest
+    needs: [validate, deploy, verify]
+    if: failure() && needs.deploy.result == 'success'
+    environment: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rollback to previous version
+        run: |
+          echo "Verification failed, attempting rollback..."
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }} && git checkout HEAD~1 && cd deploy/olivenet && docker-compose up -d"
+
+      - name: Notify rollback
+        run: |
+          echo "::warning::Deployment verification failed. Rollback executed."
+
+  # ===========================================================================
+  # Notify
+  # ===========================================================================
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [validate, deploy, verify]
+    if: always()
+    environment: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [[ "${{ needs.verify.result }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=Deployment successful" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.deploy.result }}" == "failure" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=Deployment failed" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.verify.result }}" == "failure" ]]; then
+            echo "status=rollback" >> $GITHUB_OUTPUT
+            echo "emoji=⚠️" >> $GITHUB_OUTPUT
+            echo "message=Deployment rolled back" >> $GITHUB_OUTPUT
+          else
+            echo "status=unknown" >> $GITHUB_OUTPUT
+            echo "emoji=❓" >> $GITHUB_OUTPUT
+            echo "message=Deployment status unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Telegram notification
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d parse_mode="HTML" \
+            -d text="${{ steps.status.outputs.emoji }} <b>TTS Deployment</b>
+
+          Environment: <code>${{ needs.validate.outputs.environment }}</code>
+          Status: ${{ steps.status.outputs.message }}
+          Ref: <code>${{ github.ref_name }}</code>
+          Actor: ${{ github.actor }}
+
+          <a href=\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\">View Run</a>" || true
+
+      - name: Create deployment summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## Deployment Summary
+
+          | Property | Value |
+          |----------|-------|
+          | Environment | ${{ needs.validate.outputs.environment }} |
+          | Status | ${{ steps.status.outputs.emoji }} ${{ steps.status.outputs.message }} |
+          | Ref | \`${{ github.ref_name }}\` |
+          | Commit | \`${{ github.sha }}\` |
+          | Actor | ${{ github.actor }} |
+          | Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |
+          EOF

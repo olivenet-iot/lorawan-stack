@@ -1,0 +1,56 @@
+# =============================================================================
+# Olivenet TTS - Monitor Service
+# =============================================================================
+# Systemd unit file for the monitoring daemon
+#
+# Installation:
+#   sudo cp olivenet-tts-monitor.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable olivenet-tts-monitor
+#   sudo systemctl start olivenet-tts-monitor
+# =============================================================================
+
+[Unit]
+Description=Olivenet TTS Health Monitor
+Documentation=https://github.com/olivenet-iot/lorawan-stack
+After=network.target docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+
+# Environment
+Environment=DEPLOY_DIR=/opt/olivenet-tts
+Environment=LOG_DIR=/var/log/olivenet-tts
+Environment=CHECK_INTERVAL=60
+Environment=FAILURE_THRESHOLD=3
+
+# Working directory
+WorkingDirectory=/opt/olivenet-tts/deploy/olivenet/scripts
+
+# Start command
+ExecStart=/opt/olivenet-tts/deploy/olivenet/scripts/monitor-daemon.sh run
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=30
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=olivenet-tts-monitor
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/run /var/log/olivenet-tts
+
+[Install]
+WantedBy=multi-user.target

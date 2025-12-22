@@ -1,0 +1,59 @@
+{
+  "project": {
+    "name": "The Things Stack - Olivenet",
+    "description": "LoRaWAN Network Server for Olivenet (North Cyprus Industrial IoT)",
+    "language": "go",
+    "framework": "custom"
+  },
+  "context": {
+    "primaryFile": "CLAUDE.md",
+    "additionalDocs": [
+      "docs/olivenet/ARCHITECTURE.md",
+      "docs/olivenet/DEPLOYMENT.md",
+      "docs/olivenet/DEVELOPMENT.md",
+      "docs/olivenet/CUSTOMIZATION-ROADMAP.md",
+      "docs/olivenet/TROUBLESHOOTING.md"
+    ]
+  },
+  "codebase": {
+    "entryPoints": [
+      "cmd/ttn-lw-stack/main.go",
+      "cmd/ttn-lw-cli/main.go"
+    ],
+    "criticalPaths": [
+      "pkg/networkserver/",
+      "pkg/applicationserver/",
+      "pkg/gatewayserver/",
+      "pkg/joinserver/",
+      "pkg/identityserver/"
+    ],
+    "testPaths": [
+      "pkg/**/testdata/",
+      "pkg/**/*_test.go"
+    ]
+  },
+  "build": {
+    "command": "mage go:build",
+    "testCommand": "mage go:test",
+    "protoCommand": "mage proto:all"
+  },
+  "deployment": {
+    "configDir": "deploy/olivenet/",
+    "dockerCompose": "deploy/olivenet/docker-compose.yml",
+    "envExample": "deploy/olivenet/.env.example"
+  },
+  "preferences": {
+    "avoidPaths": [
+      "vendor/",
+      "node_modules/",
+      ".env/",
+      "blob/"
+    ],
+    "focusAreas": [
+      "Energy meter payload processing",
+      "Webhook integrations",
+      "Gateway management",
+      "Device provisioning"
+    ]
+  }
+}

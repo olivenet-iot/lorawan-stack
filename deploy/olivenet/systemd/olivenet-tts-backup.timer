@@ -1,0 +1,39 @@
+# =============================================================================
+# Olivenet TTS - Backup Timer
+# =============================================================================
+# Systemd timer for scheduled backups
+# Default: Daily at 02:00
+#
+# Installation:
+#   sudo cp olivenet-tts-backup.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable olivenet-tts-backup.timer
+#   sudo systemctl start olivenet-tts-backup.timer
+#
+# Check status:
+#   sudo systemctl list-timers olivenet-tts-backup.timer
+#
+# View next run:
+#   systemctl status olivenet-tts-backup.timer
+# =============================================================================
+
+[Unit]
+Description=Olivenet TTS Daily Backup Timer
+Documentation=https://github.com/olivenet-iot/lorawan-stack
+Requires=olivenet-tts-backup.service
+
+[Timer]
+# Run daily at 02:00
+OnCalendar=*-*-* 02:00:00
+
+# Add some randomness to prevent all backups running at exact same time
+RandomizedDelaySec=600
+
+# If missed (e.g., system was off), run when system comes back up
+Persistent=true
+
+# Accuracy - don't wake system just for backup
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

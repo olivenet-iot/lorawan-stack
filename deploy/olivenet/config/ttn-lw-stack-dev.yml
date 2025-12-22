@@ -1,0 +1,254 @@
+# Olivenet The Things Stack - Development Configuration
+# Simplified config for local development
+
+# =============================================================================
+# HTTP Server Configuration (No TLS)
+# =============================================================================
+http:
+  listen: ":1885"
+  cookie:
+    block-key: ""
+    hash-key: ""
+  static:
+    mount: /assets
+    search-path:
+      - /srv/ttn-lorawan/public
+
+# =============================================================================
+# gRPC Configuration (No TLS)
+# =============================================================================
+grpc:
+  listen: ":1884"
+
+# =============================================================================
+# Cluster Configuration
+# =============================================================================
+cluster:
+  name: "olivenet-dev"
+  identity-server: "localhost:1884"
+  gateway-server: "localhost:1884"
+  network-server: "localhost:1884"
+  application-server: "localhost:1884"
+  join-server: "localhost:1884"
+
+# =============================================================================
+# Redis Configuration
+# =============================================================================
+redis:
+  address: "redis:6379"
+  database: 0
+  namespace:
+    - ttn
+    - v3
+
+# =============================================================================
+# Blob Storage Configuration
+# =============================================================================
+blob:
+  provider: local
+  local:
+    directory: /srv/ttn-lorawan/public/blob
+
+# =============================================================================
+# Events Configuration
+# =============================================================================
+events:
+  backend: redis
+
+# =============================================================================
+# Frequency Plans
+# =============================================================================
+frequency-plans:
+  config-source: directory
+  directory: /srv/ttn-lorawan/lorawan-frequency-plans
+
+# =============================================================================
+# Device Repository
+# =============================================================================
+device-repository:
+  directory: /srv/ttn-lorawan/lorawan-devices
+
+# =============================================================================
+# Identity Server Configuration
+# =============================================================================
+is:
+  database-uri: "postgres://ttn:ttn_dev_password@postgres:5432/ttn_lorawan_dev?sslmode=disable"
+
+  oauth:
+    ui:
+      canonical-url: "http://localhost:1881/oauth"
+      is:
+        base-url: "http://localhost:1885/api/v3"
+
+  email:
+    sender-name: "TTS Dev"
+    sender-address: "dev@localhost"
+    network:
+      name: "Olivenet Dev"
+      console-url: "http://localhost:1885/console"
+      identity-server-url: "http://localhost:1885"
+    smtp:
+      address: "mailhog:1025"
+      connections: 1
+
+  user-registration:
+    enabled: true
+    admin-approval:
+      required: false
+    contact-info-validation:
+      required: false
+    password-requirements:
+      min-length: 8
+      max-length: 1000
+
+  admin-rights:
+    all: true
+
+# =============================================================================
+# Gateway Server Configuration
+# =============================================================================
+gs:
+  require-registered-gateways: false
+
+  udp:
+    listeners:
+      - ":1700"
+    schedule-late-time: 800ms
+    workers: 2
+
+  basic-station:
+    listen: ":1887"
+    allow-unauthenticated: true
+
+  mqtt:
+    listen: ":1883"
+    public-address: "localhost:1883"
+
+  mqtt-v2:
+    listen: ":1881"
+
+# =============================================================================
+# Network Server Configuration
+# =============================================================================
+ns:
+  net-id: "000000"
+  cluster-id: "olivenet-dev"
+  dev-addr-prefixes:
+    - "26000000/7"
+
+  deduplication-window: 200ms
+  cooldown-window: 2s
+
+  default-mac-settings:
+    adr:
+      mode:
+        dynamic:
+          margin: 15dB
+    rx1-delay: RX_DELAY_5
+    rx2-data-rate-index: 3
+    rx2-frequency: 869525000
+
+# =============================================================================
+# Application Server Configuration
+# =============================================================================
+as:
+  webhooks:
+    target: direct
+    timeout: 10s
+    queue-size: 100
+    workers: 4
+
+  formatters:
+    max-parameter-length: 16384
+
+# =============================================================================
+# Join Server Configuration
+# =============================================================================
+js:
+  join-eui-prefixes:
+    - "0000000000000000/0"
+
+# =============================================================================
+# Console Configuration
+# =============================================================================
+console:
+  ui:
+    canonical-url: "http://localhost:1885/console"
+    is:
+      base-url: "http://localhost:1885/api/v3"
+    gs:
+      base-url: "http://localhost:1885/api/v3"
+    ns:
+      base-url: "http://localhost:1885/api/v3"
+    as:
+      base-url: "http://localhost:1885/api/v3"
+    js:
+      base-url: "http://localhost:1885/api/v3"
+    edtc:
+      base-url: "http://localhost:1885/api/v3"
+    qrg:
+      base-url: "http://localhost:1885/api/v3"
+    account-url: "http://localhost:1881/oauth"
+    landing-url: "http://localhost:1885"
+    documentation-base-url: "https://www.thethingsindustries.com/docs"
+    stack-config:
+      is:
+        enabled: true
+        base-url: "http://localhost:1885/api/v3"
+      gs:
+        enabled: true
+        base-url: "http://localhost:1885/api/v3"
+      ns:
+        enabled: true
+        base-url: "http://localhost:1885/api/v3"
+      as:
+        enabled: true
+        base-url: "http://localhost:1885/api/v3"
+      js:
+        enabled: true
+        base-url: "http://localhost:1885/api/v3"
+
+  oauth:
+    authorize-url: "http://localhost:1881/oauth/authorize"
+    token-url: "http://localhost:1881/oauth/token"
+    logout-url: "http://localhost:1881/oauth/logout"
+    client-id: console
+    client-secret: console-dev-secret
+
+# =============================================================================
+# Device Claiming Configuration
+# =============================================================================
+dcs:
+  oauth:
+    authorize-url: "http://localhost:1881/oauth/authorize"
+    token-url: "http://localhost:1881/oauth/token"
+    logout-url: "http://localhost:1881/oauth/logout"
+    client-id: device-claiming
+    client-secret: dcs-dev-secret
+
+  ui:
+    canonical-url: "http://localhost:1885/claim"
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+log:
+  level: debug
+  format: console
+
+# =============================================================================
+# Metrics Configuration
+# =============================================================================
+metrics:
+  prometheus:
+    enable: true
+
+# =============================================================================
+# Health/Debug Configuration
+# =============================================================================
+health:
+  listen: ":1885"
+
+debug:
+  pprof:
+    enable: true

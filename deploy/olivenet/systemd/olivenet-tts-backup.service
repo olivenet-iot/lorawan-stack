@@ -1,0 +1,53 @@
+# =============================================================================
+# Olivenet TTS - Backup Service
+# =============================================================================
+# Systemd oneshot service for running backups
+# Triggered by olivenet-tts-backup.timer
+#
+# Installation:
+#   sudo cp olivenet-tts-backup.service /etc/systemd/system/
+#   sudo cp olivenet-tts-backup.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable olivenet-tts-backup.timer
+#   sudo systemctl start olivenet-tts-backup.timer
+#
+# Manual run:
+#   sudo systemctl start olivenet-tts-backup.service
+# =============================================================================
+
+[Unit]
+Description=Olivenet TTS Backup
+Documentation=https://github.com/olivenet-iot/lorawan-stack
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+
+# Environment
+Environment=DEPLOY_DIR=/opt/olivenet-tts
+Environment=BACKUP_DIR=/var/backups/olivenet-tts
+Environment=LOG_DIR=/var/log/olivenet-tts
+Environment=RETENTION_DAYS=7
+
+# Working directory
+WorkingDirectory=/opt/olivenet-tts/deploy/olivenet/scripts
+
+# Backup command
+ExecStart=/opt/olivenet-tts/deploy/olivenet/scripts/backup-cron.sh
+
+# Timeout (allow up to 30 minutes for backup)
+TimeoutStartSec=1800
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=olivenet-tts-backup
+
+# Security
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
