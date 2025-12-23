@@ -293,6 +293,12 @@ def main():
 
     parser.add_argument('--config', '-c', default='config.yml',
                         help='Configuration file')
+    parser.add_argument('--server', default='localhost',
+                        help='TTS server address')
+    parser.add_argument('--port', type=int, default=1700,
+                        help='UDP port')
+    parser.add_argument('--gateway-eui', default='AA555A0000000001',
+                        help='Gateway EUI')
     parser.add_argument('--dev-eui', required=True,
                         help='Device EUI')
     parser.add_argument('--join-eui', default='0000000000000000',
@@ -306,6 +312,16 @@ def main():
 
     # Load config
     config = load_config(args.config)
+
+    # Apply CLI overrides to config
+    if 'stack' not in config:
+        config['stack'] = {}
+    if 'gateway' not in config:
+        config['gateway'] = {}
+
+    config['stack']['host'] = args.server
+    config['stack']['gateway_udp_port'] = args.port
+    config['gateway']['eui'] = args.gateway_eui
 
     # Create and run tester
     tester = JoinTester(config)

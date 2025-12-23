@@ -32,6 +32,16 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Configuration
 # =============================================================================
 
+# Auto-detect domain from .env if available
+DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
+if [[ -f "$DEPLOY_DIR/.env" ]]; then
+    # shellcheck disable=SC1091
+    source "$DEPLOY_DIR/.env" 2>/dev/null || true
+    if [[ -n "${DOMAIN:-}" && "$DOMAIN" != "localhost" ]]; then
+        STACK_URL="${STACK_URL:-https://${DOMAIN}}"
+    fi
+fi
+
 STACK_URL="${STACK_URL:-http://localhost:80}"
 DISK_THRESHOLD="${DISK_THRESHOLD:-80}"
 MEMORY_THRESHOLD="${MEMORY_THRESHOLD:-85}"
