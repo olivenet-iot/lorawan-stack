@@ -157,8 +157,13 @@ services:
       # UDP Packet Forwarder (Gateway)
       - "${GS_UDP_PORT:-1700}:1700/udp"
 
-      # MQTT Secure
-      - "${GS_MQTT_PORT:-8883}:8883"
+      # GS MQTT (Gateway connections)
+      - "1882:1882"
+      - "8882:8882"
+
+      # AS MQTT (Application data integration)
+      - "1883:1883"
+      - "8883:8883"
 
       # BasicStation WebSocket
       - "${GS_BASICSTATION_PORT:-8887}:8887"

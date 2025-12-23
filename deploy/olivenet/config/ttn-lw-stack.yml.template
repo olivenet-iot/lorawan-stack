@@ -156,10 +156,10 @@ gs:
 
   # MQTT Protocol (for gateways)
   mqtt:
-    listen: ":1883"
-    listen-tls: ":${GS_MQTT_PORT}"
-    public-address: "${DOMAIN}:${GS_MQTT_PORT}"
-    public-tls-address: "${DOMAIN}:${GS_MQTT_PORT}"
+    listen: ":1882"
+    listen-tls: ":8882"
+    public-address: "${DOMAIN}:1882"
+    public-tls-address: "${DOMAIN}:8882"
 
   # MQTT v2 (Legacy)
   mqtt-v2:
@@ -214,10 +214,12 @@ ns:
 # Application Server Configuration
 # =============================================================================
 as:
-  # MQTT disabled (use webhooks or pubsub instead)
+  # MQTT enabled for application data integration
   mqtt:
-    listen: ""
-    listen-tls: ""
+    listen: ":1883"
+    listen-tls: ":8883"
+    public-address: "${DOMAIN}:1883"
+    public-tls-address: "${DOMAIN}:8883"
 
   # Webhooks
   webhooks:

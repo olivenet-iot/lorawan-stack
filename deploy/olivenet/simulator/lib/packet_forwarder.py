@@ -27,6 +27,8 @@ import time
 import random
 import asyncio
 import socket
+import errno
+import select
 from dataclasses import dataclass, field, asdict
 from typing import Optional, List, Callable, Any, Dict
 from enum import IntEnum
@@ -453,15 +455,24 @@ class PacketForwarder:
         """Background task: receive and process server responses"""
         while self._running:
             try:
-                loop = asyncio.get_event_loop()
+                # Use select to wait for data with timeout (prevents EAGAIN spam)
+                readable, _, _ = select.select([self._socket], [], [], 0.1)
+                if not readable:
+                    await asyncio.sleep(0.01)  # Small yield to event loop
+                    continue
 
-                # Receive with timeout
                 try:
-                    data = await asyncio.wait_for(
-                        loop.run_in_executor(None, lambda: self._socket.recv(65535)),
-                        timeout=1.0
-                    )
-                except asyncio.TimeoutError:
+                    data, addr = self._socket.recvfrom(65535)
+                except BlockingIOError:
+                    # No data available, this is normal for non-blocking sockets
+                    continue
+                except socket.error as e:
+                    if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
+                        # No data available, continue
+                        continue
+                    elif self._running:
+                        # Real error, only log if still running
+                        print(f"Socket error in receive loop: {e}")
                     continue
 
                 if not data:
@@ -504,7 +515,8 @@ class PacketForwarder:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                print(f"Error in receive_loop: {e}")
+                if self._running:
+                    print(f"Error in receive_loop: {e}")
                 await asyncio.sleep(0.1)
 
     @property

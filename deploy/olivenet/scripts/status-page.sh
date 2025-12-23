@@ -23,10 +23,21 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Configuration
 # =============================================================================
 
-OUTPUT_DIR="${OUTPUT_DIR:-/var/www/status}"
+# Output directory - use /var/www if writable, otherwise /tmp
+if [[ -w "/var/www" ]]; then
+    OUTPUT_DIR="${OUTPUT_DIR:-/var/www/olivenet-tts-status}"
+else
+    OUTPUT_DIR="${OUTPUT_DIR:-/tmp/olivenet-tts-status}"
+fi
 OUTPUT_FILE="${OUTPUT_DIR}/index.html"
 HEALTH_SCRIPT="${SCRIPT_DIR}/health-check.sh"
-HISTORY_FILE="/var/run/olivenet-tts-status-history.json"
+
+# History file - use /var/run if writable, otherwise /tmp
+if [[ -w "/var/run" ]]; then
+    HISTORY_FILE="${HISTORY_FILE:-/var/run/olivenet-tts-status-history.json}"
+else
+    HISTORY_FILE="${HISTORY_FILE:-/tmp/olivenet-tts-status-history.json}"
+fi
 REFRESH_INTERVAL=60
 
 # =============================================================================
@@ -99,7 +110,7 @@ update_history() {
 
     # Simple append and trim (not perfect JSON handling but works)
     local entries
-    entries=$(cat "$HISTORY_FILE" | grep -o '\[.*\]' | sed 's/^\[//' | sed 's/\]$//')
+    entries=$(cat "$HISTORY_FILE" | grep -o '\[.*\]' | sed 's/^\[//' | sed 's/\]$//' || :)
 
     if [[ -n "$entries" ]]; then
         entries="$entries,$new_entry"
@@ -127,8 +138,8 @@ calculate_uptime() {
     local total
     local healthy
 
-    total=$(grep -o '"status"' "$HISTORY_FILE" | wc -l)
-    healthy=$(grep -o '"status":"healthy"' "$HISTORY_FILE" | wc -l)
+    total=$(grep -o '"status"' "$HISTORY_FILE" | wc -l || :)
+    healthy=$(grep -o '"status":"healthy"' "$HISTORY_FILE" | wc -l || :)
 
     if [[ $total -eq 0 ]]; then
         echo "100"
@@ -143,7 +154,7 @@ generate_html() {
     local uptime="$3"
 
     local status
-    status=$(echo "$health_data" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+    status=$(echo "$health_data" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4 || :)
 
     local status_color
     local status_icon
@@ -173,7 +184,7 @@ generate_html() {
     esac
 
     local backup_time
-    backup_time=$(echo "$backup_data" | grep -o '"time":[0-9]*' | cut -d: -f2)
+    backup_time=$(echo "$backup_data" | grep -o '"time":[0-9]*' | head -1 | cut -d: -f2 || :)
     local backup_ago=""
 
     if [[ "$backup_time" != "0" && -n "$backup_time" ]]; then
@@ -299,18 +310,18 @@ EOF
 
     # Parse and display each check
     local checks
-    checks=$(echo "$health_data" | grep -o '"checks":{[^}]*}' | sed 's/"checks"://')
+    checks=$(echo "$health_data" | grep -o '"checks":{[^}]*}' | sed 's/"checks"://' || :)
 
     for component in stack postgres redis disk memory docker ssl; do
         local check_data
-        check_data=$(echo "$health_data" | grep -o "\"$component\":{[^}]*}" || echo "")
+        check_data=$(echo "$health_data" | grep -o "\"$component\":{[^}]*}" || :)
 
         local check_status="unknown"
         local check_message="-"
 
         if [[ -n "$check_data" ]]; then
-            check_status=$(echo "$check_data" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-            check_message=$(echo "$check_data" | grep -o '"message":"[^"]*"' | cut -d'"' -f4)
+            check_status=$(echo "$check_data" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4 || :)
+            check_message=$(echo "$check_data" | grep -o '"message":"[^"]*"' | head -1 | cut -d'"' -f4 || :)
         fi
 
         local status_class="metric-ok"
@@ -409,7 +420,7 @@ main() {
 
     # Update history
     local current_status
-    current_status=$(echo "$health_data" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+    current_status=$(echo "$health_data" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4 || :)
     update_history "$current_status"
 
     # Calculate uptime
