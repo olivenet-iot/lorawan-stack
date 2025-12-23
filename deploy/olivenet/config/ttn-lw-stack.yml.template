@@ -1,8 +1,8 @@
 # Olivenet The Things Stack Configuration Template
 # Production-ready configuration for 3000+ energy meters
 #
-# This is a TEMPLATE file. Use deploy.sh to generate the actual config
-# or manually replace ${VARIABLE} placeholders.
+# This is a TEMPLATE file. Run deploy.sh to generate the actual config.
+# The script will replace all placeholder values automatically.
 
 # =============================================================================
 # TLS Configuration

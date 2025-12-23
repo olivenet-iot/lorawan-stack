@@ -312,17 +312,36 @@ log_success ".env file created"
 # =============================================================================
 # Generate Config from Template
 # =============================================================================
-log_info "Generating stack configuration..."
+log_info "Generating stack configuration from template..."
 
 if [[ -f "${CONFIG_DIR}/ttn-lw-stack.yml.template" ]]; then
-    # Use template if available
-    sed -e "s/\${DOMAIN}/${DOMAIN}/g" \
-        -e "s/\${ACME_EMAIL}/${ACME_EMAIL}/g" \
-        -e "s/\${TLS_SOURCE}/${TLS_SOURCE}/g" \
-        -e "s/\${CONSOLE_OAUTH_CLIENT_SECRET}/${CONSOLE_SECRET}/g" \
-        -e "s/\${DEVICE_CLAIMING_SECRET}/${DEVICE_CLAIMING_SECRET}/g" \
-        "${CONFIG_DIR}/ttn-lw-stack.yml.template" > "${CONFIG_DIR}/ttn-lw-stack.yml.generated"
-    log_success "Configuration generated from template"
+    # Replace ALL template variables
+    # Note: Some values are static (same for all deployments)
+    sed -e "s|\${DOMAIN}|${DOMAIN}|g" \
+        -e "s|\${ACME_EMAIL}|${ACME_EMAIL}|g" \
+        -e "s|\${ACME_DIR}|/var/lib/acme|g" \
+        -e "s|\${TLS_SOURCE}|${TLS_SOURCE}|g" \
+        -e "s|\${CONSOLE_OAUTH_CLIENT_SECRET}|${CONSOLE_SECRET}|g" \
+        -e "s|\${DEVICE_CLAIMING_SECRET}|${DEVICE_CLAIMING_SECRET}|g" \
+        -e "s|\${NET_ID}|000000|g" \
+        -e "s|\${DEV_ADDR_PREFIX}|26000000/7|g" \
+        -e "s|\${CLUSTER_ID}|olivenet-cluster|g" \
+        -e "s|\${BLOB_LOCAL_DIRECTORY}|/srv/ttn-lorawan/public/blob|g" \
+        -e "s|\${GS_BASICSTATION_PORT}|8887|g" \
+        -e "s|\${GS_MQTT_PORT}|8883|g" \
+        -e "s|\${WEBHOOK_QUEUE_SIZE}|1000|g" \
+        -e "s|\${WEBHOOK_WORKERS}|16|g" \
+        -e "s|\${LOG_LEVEL}|info|g" \
+        -e "s|\${LOG_FORMAT}|json|g" \
+        -e "s|\${METRICS_ENABLED}|true|g" \
+        -e "s|\${PPROF_ENABLED}|false|g" \
+        -e "s|\${SMTP_HOST}|smtp.example.com|g" \
+        -e "s|\${SMTP_PORT}|587|g" \
+        -e "s|\${SMTP_USERNAME}||g" \
+        -e "s|\${SMTP_PASSWORD}||g" \
+        -e "s|\${SMTP_FROM}|noreply@${DOMAIN}|g" \
+        "${CONFIG_DIR}/ttn-lw-stack.yml.template" > "${CONFIG_DIR}/ttn-lw-stack.yml"
+    log_success "Configuration generated: ${CONFIG_DIR}/ttn-lw-stack.yml"
 else
     log_warn "Template not found, using existing config"
 fi
