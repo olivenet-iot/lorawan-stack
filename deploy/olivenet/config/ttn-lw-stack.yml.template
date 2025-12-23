@@ -279,6 +279,8 @@ console:
       base-url: "https://${DOMAIN}/api/v3"
     qrg:
       base-url: "https://${DOMAIN}/api/v3"
+    dcs:
+      base-url: "https://${DOMAIN}/api/v3"
     account-url: "https://${DOMAIN}/oauth"
     landing-url: "https://${DOMAIN}"
     documentation-base-url: "https://www.thethingsindustries.com/docs"
@@ -297,6 +299,9 @@ console:
         enabled: true
         base-url: "https://${DOMAIN}/api/v3"
       js:
+        enabled: true
+        base-url: "https://${DOMAIN}/api/v3"
+      dcs:
         enabled: true
         base-url: "https://${DOMAIN}/api/v3"
 
