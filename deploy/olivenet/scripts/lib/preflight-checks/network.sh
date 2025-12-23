@@ -34,7 +34,7 @@ check_port_available() {
             process=$(ss -tlnp 2>/dev/null | grep ":${port_num} " | grep -oP 'users:\(\("\K[^"]+' | head -1)
             process="${process:-unknown}"
             RESULTS["port_${port_num}_${protocol}"]="error|Port ${port_num}/${protocol} in use by ${process}"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
             return 1
         fi
     elif [[ "$protocol" == "udp" ]]; then
@@ -43,7 +43,7 @@ check_port_available() {
             process=$(ss -ulnp 2>/dev/null | grep ":${port_num} " | grep -oP 'users:\(\("\K[^"]+' | head -1)
             process="${process:-unknown}"
             RESULTS["port_${port_num}_${protocol}"]="error|Port ${port_num}/${protocol} in use by ${process}"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
             return 1
         fi
     fi
@@ -100,7 +100,7 @@ check_dns_resolution() {
     fi
 
     RESULTS["dns"]="error|Cannot resolve $domain"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
     return 1
 }
 
@@ -122,12 +122,12 @@ check_internet_connectivity() {
     # Try with ping as fallback
     if ping -c 1 -W 5 8.8.8.8 &>/dev/null; then
         RESULTS["internet"]="warning|Limited (DNS may be blocked)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
     RESULTS["internet"]="warning|No internet connection detected"
-    ((WARNINGS++))
+    WARNINGS=$((WARNINGS + 1))
     return 1
 }
 
@@ -139,7 +139,7 @@ check_ipv4_forwarding() {
         RESULTS["ipv4_forward"]="ok|Enabled"
     else
         RESULTS["ipv4_forward"]="warning|Disabled (may affect Docker networking)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     fi
 }
 
@@ -163,7 +163,7 @@ check_firewall() {
         RESULTS["firewall"]="ok|$firewall_status - ensure required ports are allowed"
     else
         RESULTS["firewall"]="warning|No firewall detected (consider enabling for production)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     fi
 }
 
@@ -174,9 +174,9 @@ check_firewall() {
 run_network_checks() {
     log_debug "Running network checks..."
 
-    check_all_required_ports
-    check_dns_resolution
-    check_internet_connectivity
-    check_ipv4_forwarding
-    check_firewall
+    check_all_required_ports || true
+    check_dns_resolution || true
+    check_internet_connectivity || true
+    check_ipv4_forwarding || true
+    check_firewall || true
 }

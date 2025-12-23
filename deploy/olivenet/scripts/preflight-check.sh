@@ -282,7 +282,7 @@ output_text() {
         case "$status" in
             ok)
                 status_icon="${GREEN}✓${NC}"
-                ((PASSED++))
+                PASSED=$((PASSED + 1))
                 ;;
             warning)
                 status_icon="${YELLOW}⚠${NC}"
@@ -292,7 +292,7 @@ output_text() {
                 ;;
             skip)
                 status_icon="${CYAN}○${NC}"
-                ((PASSED++))
+                PASSED=$((PASSED + 1))
                 ;;
         esac
 

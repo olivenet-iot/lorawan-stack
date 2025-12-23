@@ -135,7 +135,7 @@ stop_daemon() {
     local count=0
     while kill -0 "$pid" 2>/dev/null && [[ $count -lt 10 ]]; do
         sleep 1
-        ((count++))
+        count=$((count + 1))
     done
 
     # Force kill if still running
@@ -220,7 +220,7 @@ EOF
         # Handle status changes
         if [[ $exit_code -eq 2 ]]; then
             # Critical failure
-            ((consecutive_failures++))
+            consecutive_failures=$((consecutive_failures + 1))
             log_warn "Health check failed ($consecutive_failures/$FAILURE_THRESHOLD)"
 
             if [[ $consecutive_failures -ge $FAILURE_THRESHOLD && "$is_alerting" != "true" ]]; then

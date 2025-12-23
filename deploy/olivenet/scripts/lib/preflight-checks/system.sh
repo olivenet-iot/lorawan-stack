@@ -40,7 +40,7 @@ check_os_version() {
         os_id="$DISTRIB_ID"
     else
         RESULTS["os_version"]="error|Cannot detect OS"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return
     fi
 
@@ -51,7 +51,7 @@ check_os_version() {
                 RESULTS["os_version"]="ok|$os_name $os_version"
             else
                 RESULTS["os_version"]="warning|$os_name $os_version (Ubuntu 20.04+ recommended)"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
             ;;
         debian)
@@ -59,12 +59,12 @@ check_os_version() {
                 RESULTS["os_version"]="ok|$os_name $os_version"
             else
                 RESULTS["os_version"]="warning|$os_name $os_version (Debian 11+ recommended)"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
             ;;
         *)
             RESULTS["os_version"]="warning|$os_name $os_version (Ubuntu/Debian recommended)"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
             ;;
     esac
 }
@@ -75,10 +75,10 @@ check_cpu_cores() {
 
     if [[ $cores -lt $MIN_CPU_CORES ]]; then
         RESULTS["cpu_cores"]="error|$cores cores (minimum $MIN_CPU_CORES required)"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     elif [[ $cores -lt $REC_CPU_CORES ]]; then
         RESULTS["cpu_cores"]="warning|$cores cores ($REC_CPU_CORES recommended)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     else
         RESULTS["cpu_cores"]="ok|$cores cores"
     fi
@@ -106,10 +106,10 @@ check_ram() {
 
     if [[ $total_gb -lt $MIN_RAM_GB ]]; then
         RESULTS["ram"]="error|${total_gb}GB total (minimum ${MIN_RAM_GB}GB required)"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     elif [[ $total_gb -lt $REC_RAM_GB ]]; then
         RESULTS["ram"]="warning|${total_gb}GB total (${REC_RAM_GB}GB recommended)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     else
         RESULTS["ram"]="ok|${total_gb}GB total, ${available_gb}GB available"
     fi
@@ -123,16 +123,16 @@ check_disk_space() {
 
     if [[ -z "$available_gb" || "$available_gb" == "0" ]]; then
         RESULTS["disk_space"]="error|Cannot determine disk space"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return
     fi
 
     if [[ $available_gb -lt $MIN_DISK_GB ]]; then
         RESULTS["disk_space"]="error|${available_gb}GB free (minimum ${MIN_DISK_GB}GB required)"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     elif [[ $available_gb -lt $REC_DISK_GB ]]; then
         RESULTS["disk_space"]="warning|${available_gb}GB free (${REC_DISK_GB}GB recommended)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     else
         RESULTS["disk_space"]="ok|${available_gb}GB free"
     fi
@@ -147,7 +147,7 @@ check_swap() {
 
     if [[ $swap_total_gb -lt $MIN_SWAP_GB ]]; then
         RESULTS["swap"]="warning|${swap_total_gb}GB (${REC_SWAP_GB}GB+ recommended)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     else
         RESULTS["swap"]="ok|${swap_total_gb}GB"
     fi
@@ -185,7 +185,7 @@ check_time_sync() {
     fi
 
     RESULTS["time_sync"]="warning|Time sync not detected (NTP recommended)"
-    ((WARNINGS++))
+    WARNINGS=$((WARNINGS + 1))
 }
 
 # =============================================================================
@@ -195,10 +195,10 @@ check_time_sync() {
 run_system_checks() {
     log_debug "Running system checks..."
 
-    check_os_version
-    check_cpu_cores
-    check_ram
-    check_disk_space "/"
-    check_swap
-    check_time_sync
+    check_os_version || true
+    check_cpu_cores || true
+    check_ram || true
+    check_disk_space "/" || true
+    check_swap || true
+    check_time_sync || true
 }

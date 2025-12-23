@@ -52,7 +52,7 @@ check_no_default_passwords() {
 
     if [[ ${#weak_found[@]} -gt 0 ]]; then
         RESULTS["default_passwords"]="error|Weak passwords detected: ${weak_found[*]}"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -75,7 +75,7 @@ check_secret_strength() {
     set +a
 
     for var in "${SECRET_VARS[@]}"; do
-        local value="${!var}"
+        local value="${!var:-}"
 
         # Skip if not set
         if [[ -z "$value" ]]; then
@@ -101,7 +101,7 @@ check_secret_strength() {
 
     if [[ ${#weak_secrets[@]} -gt 0 ]]; then
         RESULTS["secret_strength"]="warning|Short secrets: ${weak_secrets[*]} (${MIN_SECRET_LENGTH}+ chars recommended)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
@@ -127,14 +127,14 @@ check_file_permissions() {
     # Check if file is world-readable
     if [[ ${perms: -1} -ge 4 ]]; then
         RESULTS["file_permissions"]="warning|.env is world-readable ($perms) - consider chmod 600"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
     # Check if file is group-readable
     if [[ ${perms: -2:1} -ge 4 ]]; then
         RESULTS["file_permissions"]="warning|.env is group-readable ($perms) - consider chmod 600"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
@@ -166,7 +166,7 @@ check_https_enforced() {
     local domain="${DOMAIN:-localhost}"
     if [[ "$domain" != "localhost" && ! "$domain" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         RESULTS["https"]="warning|HTTPS not configured for $domain (recommended for production)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
@@ -192,14 +192,14 @@ check_admin_api_key() {
         for weak in "${WEAK_PASSWORDS[@]}"; do
             if [[ "${ADMIN_PASSWORD,,}" == "${weak,,}" ]]; then
                 RESULTS["admin_password"]="error|Default admin password detected"
-                ((ERRORS++))
+                ERRORS=$((ERRORS + 1))
                 return 1
             fi
         done
 
         if [[ ${#ADMIN_PASSWORD} -lt 12 ]]; then
             RESULTS["admin_password"]="warning|Admin password is short (12+ chars recommended)"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
             return 0
         fi
 
@@ -236,7 +236,7 @@ check_sensitive_files() {
 
     if [[ ${#issues[@]} -gt 0 ]]; then
         RESULTS["sensitive_files"]="warning|Sensitive files may be tracked: ${issues[*]}"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
@@ -251,10 +251,10 @@ check_sensitive_files() {
 run_security_checks() {
     log_debug "Running security checks..."
 
-    check_no_default_passwords
-    check_secret_strength
-    check_file_permissions
-    check_https_enforced
-    check_admin_password
-    check_sensitive_files
+    check_no_default_passwords || true
+    check_secret_strength || true
+    check_file_permissions || true
+    check_https_enforced || true
+    check_admin_api_key || true
+    check_sensitive_files || true
 }

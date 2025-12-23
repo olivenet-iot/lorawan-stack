@@ -32,7 +32,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Configuration
 # =============================================================================
 
-STACK_URL="${STACK_URL:-http://localhost:1885}"
+STACK_URL="${STACK_URL:-http://localhost:80}"
 DISK_THRESHOLD="${DISK_THRESHOLD:-80}"
 MEMORY_THRESHOLD="${MEMORY_THRESHOLD:-85}"
 CERT_WARN_DAYS="${CERT_WARN_DAYS:-30}"
@@ -153,11 +153,11 @@ check_stack() {
     elif [[ "$http_code" == "000" ]]; then
         result="error"
         RESULTS["stack"]="error|Cannot connect to $url"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     else
         result="error"
         RESULTS["stack"]="error|Health check returned HTTP $http_code"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     fi
 
     return 0
@@ -168,24 +168,26 @@ check_postgres() {
 
     if ! docker_container_running "$POSTGRES_CONTAINER"; then
         RESULTS["postgres"]="error|Container not running"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 0
     fi
 
     # Get credentials
-    local db_user
+    local db_user db_name
     db_user=$(docker inspect "$POSTGRES_CONTAINER" --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null | grep POSTGRES_USER | cut -d= -f2)
     db_user="${db_user:-ttn}"
+    db_name=$(docker inspect "$POSTGRES_CONTAINER" --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null | grep POSTGRES_DB | cut -d= -f2)
+    db_name="${db_name:-ttn_lorawan}"
 
     if docker exec "$POSTGRES_CONTAINER" pg_isready -U "$db_user" > /dev/null 2>&1; then
         # Check connection count
         local conn_count
-        conn_count=$(docker exec "$POSTGRES_CONTAINER" psql -U "$db_user" -t -c "SELECT count(*) FROM pg_stat_activity;" 2>/dev/null | tr -d ' ')
+        conn_count=$(docker exec "$POSTGRES_CONTAINER" psql -U "$db_user" -d "$db_name" -t -c "SELECT count(*) FROM pg_stat_activity;" 2>/dev/null | tr -d ' ')
 
         if [[ -n "$conn_count" && "$conn_count" =~ ^[0-9]+$ ]]; then
             if [[ $conn_count -gt 180 ]]; then
                 RESULTS["postgres"]="warning|High connection count: $conn_count"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             else
                 RESULTS["postgres"]="ok|Connections: $conn_count"
             fi
@@ -194,7 +196,7 @@ check_postgres() {
         fi
     else
         RESULTS["postgres"]="error|Not accepting connections"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     fi
 
     return 0
@@ -205,7 +207,7 @@ check_redis() {
 
     if ! docker_container_running "$REDIS_CONTAINER"; then
         RESULTS["redis"]="error|Container not running"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 0
     fi
 
@@ -230,7 +232,7 @@ check_redis() {
         fi
     else
         RESULTS["redis"]="error|PING failed"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     fi
 
     return 0
@@ -245,10 +247,10 @@ check_disk() {
     if [[ $usage -ge $DISK_THRESHOLD ]]; then
         if [[ $usage -ge 95 ]]; then
             RESULTS["disk"]="error|Critical: ${usage}% used"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
         else
             RESULTS["disk"]="warning|High usage: ${usage}%"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
         fi
     else
         RESULTS["disk"]="ok|${usage}% used"
@@ -276,10 +278,10 @@ check_memory() {
     if [[ $percent -ge $MEMORY_THRESHOLD ]]; then
         if [[ $percent -ge 95 ]]; then
             RESULTS["memory"]="error|Critical: ${percent}% used"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
         else
             RESULTS["memory"]="warning|High usage: ${percent}%"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
         fi
     else
         RESULTS["memory"]="ok|${percent}% used"
@@ -298,9 +300,9 @@ check_docker() {
 
     for container in "${containers[@]}"; do
         if docker_container_running "$container"; then
-            ((running++))
+            running=$((running + 1))
         else
-            ((stopped++))
+            stopped=$((stopped + 1))
             details="$details $container"
         fi
     done
@@ -309,10 +311,10 @@ check_docker() {
         RESULTS["docker"]="ok|All $running containers running"
     elif [[ $stopped -lt ${#containers[@]} ]]; then
         RESULTS["docker"]="warning|Stopped:$details"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     else
         RESULTS["docker"]="error|No containers running"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     fi
 
     return 0
@@ -336,7 +338,7 @@ check_ssl() {
 
     if [[ -z "$expiry" ]]; then
         RESULTS["ssl"]="warning|Could not check certificate"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
@@ -350,10 +352,10 @@ check_ssl() {
 
     if [[ $days_left -lt 0 ]]; then
         RESULTS["ssl"]="error|Certificate expired!"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
     elif [[ $days_left -lt $CERT_WARN_DAYS ]]; then
         RESULTS["ssl"]="warning|Expires in $days_left days"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     else
         RESULTS["ssl"]="ok|Valid for $days_left days"
     fi

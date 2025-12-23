@@ -10,11 +10,22 @@
 set -euo pipefail
 
 # =============================================================================
+# Safe Arithmetic Functions (for use with set -e)
+# =============================================================================
+# ((var++)) fails when var=0 due to set -e. These functions are safe alternatives.
+
+incr() {
+    local var_name="$1"
+    eval "$var_name=\$((\$var_name + 1))"
+}
+
+# =============================================================================
 # Configuration
 # =============================================================================
 
-# Default values (can be overridden by environment)
-export DEPLOY_DIR="${DEPLOY_DIR:-/opt/olivenet-tts}"
+# Auto-detect deploy dir from script location
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export DEPLOY_DIR="${DEPLOY_DIR:-$(dirname "$(dirname "$_SCRIPT_DIR")")}"
 export BACKUP_DIR="${BACKUP_DIR:-/var/backups/olivenet-tts}"
 export LOG_DIR="${LOG_DIR:-/var/log/olivenet-tts}"
 export POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-olivenet-postgres}"

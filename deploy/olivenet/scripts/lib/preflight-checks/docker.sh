@@ -16,7 +16,7 @@ MIN_COMPOSE_VERSION="2.0"
 check_docker_installed() {
     if ! command -v docker &>/dev/null; then
         RESULTS["docker_installed"]="error|Docker not installed"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -25,7 +25,7 @@ check_docker_installed() {
 
     if [[ -z "$version" ]]; then
         RESULTS["docker_installed"]="error|Cannot determine Docker version"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -35,7 +35,7 @@ check_docker_installed() {
         return 0
     else
         RESULTS["docker_installed"]="error|Docker $version (>= $MIN_DOCKER_VERSION required)"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 }
@@ -48,7 +48,7 @@ check_docker_daemon() {
         else
             RESULTS["docker_daemon"]="error|Docker daemon not accessible (add user to docker group)"
         fi
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -69,7 +69,7 @@ check_docker_compose() {
 
     if [[ -z "$version" ]]; then
         RESULTS["docker_compose"]="error|Docker Compose not installed"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -78,7 +78,7 @@ check_docker_compose() {
         return 0
     else
         RESULTS["docker_compose"]="warning|Compose $version (>= $MIN_COMPOSE_VERSION recommended)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 }
@@ -88,13 +88,13 @@ check_docker_socket() {
 
     if [[ ! -S "$socket" ]]; then
         RESULTS["docker_socket"]="error|Docker socket not found"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
     if [[ ! -r "$socket" ]]; then
         RESULTS["docker_socket"]="error|Docker socket not readable (check permissions)"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -119,10 +119,10 @@ check_docker_disk() {
         if [[ -n "$usage_percent" ]]; then
             if [[ $usage_percent -ge 90 ]]; then
                 RESULTS["docker_disk"]="error|${usage_percent}% used (critical)"
-                ((ERRORS++))
+                ERRORS=$((ERRORS + 1))
             elif [[ $usage_percent -ge 80 ]]; then
                 RESULTS["docker_disk"]="warning|${usage_percent}% used"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             else
                 RESULTS["docker_disk"]="ok|${usage_percent}% used"
             fi
@@ -139,7 +139,7 @@ check_docker_network() {
         RESULTS["docker_network"]="ok|Bridge network available"
     else
         RESULTS["docker_network"]="warning|Default bridge network not found"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     fi
 }
 
@@ -167,14 +167,14 @@ version_compare() {
 run_docker_checks() {
     log_debug "Running Docker checks..."
 
-    check_docker_installed
-    if [[ $? -eq 0 ]]; then
-        check_docker_daemon
-        if [[ $? -eq 0 ]]; then
-            check_docker_compose
-            check_docker_socket
-            check_docker_disk
-            check_docker_network
+    check_docker_installed || true
+    if [[ "${RESULTS[docker_installed]:-}" == ok* ]]; then
+        check_docker_daemon || true
+        if [[ "${RESULTS[docker_daemon]:-}" == ok* ]]; then
+            check_docker_compose || true
+            check_docker_socket || true
+            check_docker_disk || true
+            check_docker_network || true
         fi
     fi
 }

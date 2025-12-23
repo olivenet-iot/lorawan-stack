@@ -228,27 +228,27 @@ send_all() {
     # Telegram
     if [[ -n "$TELEGRAM_BOT_TOKEN" && -n "$TELEGRAM_CHAT_ID" ]]; then
         if send_telegram "$message"; then
-            ((sent++))
+            sent=$((sent + 1))
         else
-            ((failed++))
+            failed=$((failed + 1))
         fi
     fi
 
     # Email
     if [[ -n "$EMAIL_RECIPIENT" ]]; then
         if send_email "$EMAIL_RECIPIENT" "$message"; then
-            ((sent++))
+            sent=$((sent + 1))
         else
-            ((failed++))
+            failed=$((failed + 1))
         fi
     fi
 
     # Webhook
     if [[ -n "$WEBHOOK_URL" ]]; then
         if send_webhook "$WEBHOOK_URL" "$message"; then
-            ((sent++))
+            sent=$((sent + 1))
         else
-            ((failed++))
+            failed=$((failed + 1))
         fi
     fi
 

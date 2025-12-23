@@ -38,13 +38,13 @@ check_env_file() {
         else
             RESULTS["env_file"]="error|.env not found"
         fi
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
     if [[ ! -r "$env_file" ]]; then
         RESULTS["env_file"]="error|.env not readable"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -67,14 +67,14 @@ check_required_env_vars() {
     set +a
 
     for var in "${REQUIRED_ENV_VARS[@]}"; do
-        if [[ -z "${!var}" ]]; then
+        if [[ -z "${!var:-}" ]]; then
             missing+=("$var")
         fi
     done
 
     if [[ ${#missing[@]} -gt 0 ]]; then
         RESULTS["env_vars"]="error|Missing: ${missing[*]}"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -100,7 +100,7 @@ check_no_placeholders() {
 
     if [[ ${#found[@]} -gt 0 ]]; then
         RESULTS["placeholders"]="error|Placeholder values found: ${found[*]}"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -113,7 +113,7 @@ check_yaml_syntax() {
 
     if [[ ! -f "$config_file" ]]; then
         RESULTS["yaml_syntax"]="error|docker-compose.yml not found"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -124,7 +124,7 @@ check_yaml_syntax() {
             return 0
         else
             RESULTS["yaml_syntax"]="error|docker-compose.yml syntax error"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
             return 1
         fi
     fi
@@ -136,7 +136,7 @@ check_yaml_syntax() {
             return 0
         else
             RESULTS["yaml_syntax"]="error|docker-compose.yml syntax error"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
             return 1
         fi
     fi
@@ -169,19 +169,19 @@ check_tls_certificates() {
 
     if [[ -z "$cert_file" && -z "$key_file" ]]; then
         RESULTS["tls_certs"]="warning|TLS not configured (HTTP only)"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
     if [[ ! -f "$cert_file" ]]; then
         RESULTS["tls_certs"]="error|Certificate file not found: $cert_file"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
     if [[ ! -f "$key_file" ]]; then
         RESULTS["tls_certs"]="error|Key file not found: $key_file"
-        ((ERRORS++))
+        ERRORS=$((ERRORS + 1))
         return 1
     fi
 
@@ -230,13 +230,13 @@ check_cert_expiry() {
 
             if [[ $days_left -lt 0 ]]; then
                 RESULTS["cert_expiry"]="error|Certificate expired!"
-                ((ERRORS++))
+                ERRORS=$((ERRORS + 1))
             elif [[ $days_left -lt 7 ]]; then
                 RESULTS["cert_expiry"]="error|Certificate expires in $days_left days!"
-                ((ERRORS++))
+                ERRORS=$((ERRORS + 1))
             elif [[ $days_left -lt 30 ]]; then
                 RESULTS["cert_expiry"]="warning|Certificate expires in $days_left days"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             else
                 RESULTS["cert_expiry"]="ok|Valid for $days_left days"
             fi
@@ -252,7 +252,7 @@ check_stack_config() {
 
     if [[ ! -f "$config_file" ]]; then
         RESULTS["stack_config"]="warning|ttn-lw-stack.yml not found"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
         return 0
     fi
 
@@ -262,7 +262,7 @@ check_stack_config() {
             RESULTS["stack_config"]="ok|ttn-lw-stack.yml valid"
         else
             RESULTS["stack_config"]="error|ttn-lw-stack.yml syntax error"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
         fi
     else
         RESULTS["stack_config"]="ok|Cannot validate"
@@ -276,13 +276,13 @@ check_stack_config() {
 run_config_checks() {
     log_debug "Running configuration checks..."
 
-    check_env_file
-    if [[ $? -eq 0 ]]; then
-        check_required_env_vars
-        check_no_placeholders
+    check_env_file || true
+    if [[ "${RESULTS[env_file]:-}" == ok* ]]; then
+        check_required_env_vars || true
+        check_no_placeholders || true
     fi
-    check_yaml_syntax
-    check_stack_config
-    check_tls_certificates
-    check_cert_expiry
+    check_yaml_syntax || true
+    check_stack_config || true
+    check_tls_certificates || true
+    check_cert_expiry || true
 }

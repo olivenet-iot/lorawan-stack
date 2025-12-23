@@ -313,14 +313,14 @@ cleanup_old_backups() {
     # Clean daily backups
     while IFS= read -r -d '' file; do
         rm -f "$file"
-        ((deleted++))
+        deleted=$((deleted + 1))
     done < <(find "$BACKUP_DIR/daily" -name "backup-*.tar.gz" -mtime +"$RETENTION_DAYS" -print0 2>/dev/null)
 
     # Keep weekly backups longer (4x retention)
     local weekly_retention=$((RETENTION_DAYS * 4))
     while IFS= read -r -d '' file; do
         rm -f "$file"
-        ((deleted++))
+        deleted=$((deleted + 1))
     done < <(find "$BACKUP_DIR/weekly" -name "backup-*.tar.gz" -mtime +"$weekly_retention" -print0 2>/dev/null)
 
     if [[ $deleted -gt 0 ]]; then
@@ -363,19 +363,19 @@ main() {
 
     # Run backups
     for component in "${BACKUP_COMPONENTS[@]}"; do
-        ((total++))
+        total=$((total + 1))
         case $component in
             postgres)
-                backup_postgres || ((failed++))
+                backup_postgres || failed=$((failed + 1))
                 ;;
             redis)
-                backup_redis || ((failed++))
+                backup_redis || failed=$((failed + 1))
                 ;;
             config)
-                backup_config || ((failed++))
+                backup_config || failed=$((failed + 1))
                 ;;
             blob)
-                backup_blob || ((failed++))
+                backup_blob || failed=$((failed + 1))
                 ;;
         esac
     done
@@ -404,12 +404,12 @@ main() {
         ln -sf "$archive_path" "$BACKUP_DIR/.latest"
     else
         log_error "Failed to create archive"
-        ((failed++))
+        failed=$((failed + 1))
     fi
 
     # Verify backup
     if [[ "$SKIP_VERIFY" != "true" ]]; then
-        verify_backup "$archive_path" || ((failed++))
+        verify_backup "$archive_path" || failed=$((failed + 1))
     fi
 
     # Cleanup old backups

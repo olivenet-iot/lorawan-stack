@@ -469,19 +469,19 @@ main() {
 
     # Run restores
     for component in "${RESTORE_COMPONENTS[@]}"; do
-        ((total++))
+        total=$((total + 1))
         case $component in
             postgres)
-                restore_postgres "$TEMP_DIR" || ((failed++))
+                restore_postgres "$TEMP_DIR" || failed=$((failed + 1))
                 ;;
             redis)
-                restore_redis "$TEMP_DIR" || ((failed++))
+                restore_redis "$TEMP_DIR" || failed=$((failed + 1))
                 ;;
             config)
-                restore_config "$TEMP_DIR" || ((failed++))
+                restore_config "$TEMP_DIR" || failed=$((failed + 1))
                 ;;
             blob)
-                restore_blob "$TEMP_DIR" || ((failed++))
+                restore_blob "$TEMP_DIR" || failed=$((failed + 1))
                 ;;
         esac
     done
