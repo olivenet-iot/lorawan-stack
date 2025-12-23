@@ -24,3 +24,7 @@ tqdm>=4.66.0
 
 # Async HTTP client (optional, for API calls)
 aiohttp>=3.9.0
+
+# Testing & Development (optional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

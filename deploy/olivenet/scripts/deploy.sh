@@ -479,6 +479,22 @@ else
 fi
 
 # =============================================================================
+# Optional: Testing Tools Setup
+# =============================================================================
+echo ""
+log_info "Testing tools can be installed to run simulators and load tests."
+
+if [[ -f "$SCRIPT_DIR/setup-tools.sh" ]]; then
+    read -p "Install testing tools (Python, simulator dependencies)? [Y/n]: " install_tools
+    install_tools=${install_tools:-Y}
+    if [[ "$install_tools" =~ ^[Yy]$ ]]; then
+        "$SCRIPT_DIR/setup-tools.sh"
+    else
+        log_info "Skipping. Run './scripts/setup-tools.sh' later to install."
+    fi
+fi
+
+# =============================================================================
 # Success Banner
 # =============================================================================
 echo ""
