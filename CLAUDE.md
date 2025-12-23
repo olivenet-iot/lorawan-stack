@@ -176,8 +176,99 @@ deploy/olivenet/
 ├── docker-compose.yml      # Production stack
 ├── docker-compose.dev.yml  # Development stack
 ├── .env.example            # Environment template
-└── config/
-    └── ttn-lw-stack.yml    # Stack configuration
+├── config/
+│   └── ttn-lw-stack.yml    # Stack configuration
+├── scripts/
+│   ├── health-check.sh     # System health monitoring
+│   ├── preflight-check.sh  # Pre-deployment verification
+│   ├── backup.sh           # Backup automation
+│   └── restore.sh          # Restore from backup
+└── simulator/              # LoRaWAN simulator tools
+    ├── gateway_simulator.py
+    ├── device_simulator.py
+    ├── traffic_generator.py
+    └── join_tester.py
+```
+
+## LoRaWAN Simulator
+
+Python-based simulator for testing TTS without physical hardware.
+
+### Quick Start
+```bash
+cd deploy/olivenet/simulator
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# Test gateway connection
+python gateway_simulator.py --test-only
+
+# OTAA join test
+python join_tester.py --dev-eui 70B3D57ED0000001 --app-key <key>
+
+# Traffic load test (5000 devices)
+python traffic_generator.py --scenario scenarios/stress_test.yml
+```
+
+### Simulator Tools
+| Tool | Purpose |
+|------|---------|
+| `gateway_simulator.py` | Virtual gateway (Semtech UDP) |
+| `device_simulator.py` | Virtual device (OTAA/ABP) |
+| `join_tester.py` | Detailed OTAA join analysis |
+| `traffic_generator.py` | Load testing (5000+ devices) |
+
+See `docs/olivenet/SIMULATOR.md` for full documentation.
+
+## Pre-Flight Check
+
+Verify deployment readiness before starting the stack:
+
+```bash
+cd deploy/olivenet/scripts
+./preflight-check.sh
+```
+
+### Check Categories
+| Category | Checks |
+|----------|--------|
+| System | OS version, CPU, RAM, disk, swap |
+| Docker | Installation, daemon, compose version |
+| Network | Ports 1700/1885/8885, DNS, connectivity |
+| Config | .env file, YAML syntax, TLS certs |
+| Security | Password strength, secret length, permissions |
+
+### Options
+```bash
+./preflight-check.sh --json           # JSON output
+./preflight-check.sh --category network  # Single category
+./preflight-check.sh --quick          # Fast mode
+```
+
+## Claude Code Commands
+
+Custom commands for TTS management (`.claude/commands/`):
+
+| Command | Description |
+|---------|-------------|
+| `/deploy` | Stack deployment procedures |
+| `/status` | System status and health check |
+| `/test` | Run tests (unit, integration, simulator) |
+| `/backup` | Create backup |
+| `/restore` | Restore from backup |
+| `/logs` | View and filter logs |
+| `/troubleshoot` | Diagnostic procedures |
+| `/device` | End device management |
+| `/gateway` | Gateway management |
+| `/simulate` | Run simulator scenarios |
+
+### Usage Example
+```
+User: /simulate traffic
+Claude: [Runs traffic generator with default scenario]
+
+User: /troubleshoot join
+Claude: [Provides join failure diagnostic steps]
 ```
 
 ## Common Operations
@@ -218,6 +309,9 @@ ttn-lw-cli events subscribe --application-id my-app
 - `docs/olivenet/DEVELOPMENT.md` - Development setup
 - `docs/olivenet/CUSTOMIZATION-ROADMAP.md` - Olivenet-specific customizations
 - `docs/olivenet/TROUBLESHOOTING.md` - Common issues and solutions
+- `docs/olivenet/SIMULATOR.md` - LoRaWAN simulator usage guide
+- `docs/olivenet/OPERATIONS.md` - Operational procedures
+- `.claude/commands/README.md` - Claude Code commands reference
 
 ## Support
 

@@ -1,0 +1,26 @@
+# LoRaWAN Simulator - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# LoRaWAN Cryptography (AES-CMAC, AES-128)
+pycryptodome>=3.19.0
+
+# Configuration parsing
+pyyaml>=6.0
+
+# HTTP API calls (for TTS API integration)
+requests>=2.31.0
+
+# WebSocket support (BasicStation protocol - optional)
+websockets>=12.0
+
+# Colored terminal output
+colorama>=0.4.6
+
+# Result formatting (tables)
+tabulate>=0.9.0
+
+# Progress bars for load testing
+tqdm>=4.66.0
+
+# Async HTTP client (optional, for API calls)
+aiohttp>=3.9.0

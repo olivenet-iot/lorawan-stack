@@ -1,0 +1,99 @@
+# =============================================================================
+# LoRaWAN Simulator Configuration - Olivenet TTS
+# =============================================================================
+# Copy this file to config.local.yml and customize for your environment
+
+# =============================================================================
+# TTS Stack Connection
+# =============================================================================
+stack:
+  host: "localhost"              # TTS hostname
+  http_port: 1885                # HTTP API port
+  https_port: 8885               # HTTPS API port (TLS)
+  grpc_port: 1884                # gRPC port
+  gateway_udp_port: 1700         # Gateway UDP port
+  use_tls: false                 # Use TLS for API calls
+
+# =============================================================================
+# API Authentication
+# =============================================================================
+auth:
+  # API key from TTS Console (Application or User API key)
+  # Format: NNSXS.XXXXXXXXXXXXXX.YYYYYYYYYYYYYYYYYYYYYYYY
+  api_key: ""
+
+# =============================================================================
+# Default Application (for tests)
+# =============================================================================
+application:
+  id: "olivenet-test-app"        # Application ID
+  name: "Olivenet Test Application"
+
+# =============================================================================
+# Virtual Gateway Defaults
+# =============================================================================
+gateway:
+  # Gateway EUI (8 bytes hex)
+  eui: "AA555A0000000001"
+
+  # Frequency plan
+  frequency_plan: "EU_863_870"
+
+  # Gateway location
+  location:
+    latitude: 35.1856            # North Cyprus
+    longitude: 33.3823
+    altitude: 50
+
+  # Protocol settings
+  pull_interval: 30              # PULL_DATA interval (seconds)
+  status_interval: 30            # Status message interval (seconds)
+
+# =============================================================================
+# Virtual Device Defaults
+# =============================================================================
+device:
+  # DevEUI prefix (remaining bytes auto-generated)
+  dev_eui_prefix: "70B3D57ED0"
+
+  # JoinEUI/AppEUI (use all zeros for simple testing)
+  join_eui: "0000000000000000"
+
+  # LoRaWAN version
+  lorawan_version: "1.0.3"
+  regional_parameters: "RP001-1.0.3-RevA"
+
+# =============================================================================
+# Simulation Parameters
+# =============================================================================
+simulation:
+  # Uplink settings
+  uplink_interval: 60            # Seconds between uplinks
+  data_rate: 5                   # SF7BW125
+  tx_power: 14                   # dBm
+  confirmed_uplinks: false       # Use confirmed uplinks
+
+  # Join settings
+  join_timeout: 10               # Seconds to wait for Join Accept
+  join_retries: 3                # Number of join retries
+
+  # Traffic generator settings
+  max_concurrent_devices: 5000   # Maximum parallel devices
+  uplink_rate_limit: 500         # Max uplinks per second
+
+# =============================================================================
+# Logging
+# =============================================================================
+logging:
+  level: "INFO"                  # DEBUG, INFO, WARNING, ERROR
+  file: "results/simulator.log"
+  console: true                  # Log to console
+  timestamps: true               # Include timestamps
+
+# =============================================================================
+# Output
+# =============================================================================
+output:
+  format: "json"                 # json, csv, text
+  directory: "results"           # Output directory
+  include_payloads: true         # Include raw payloads in output
