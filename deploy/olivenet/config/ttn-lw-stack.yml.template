@@ -1,5 +1,8 @@
-# Olivenet The Things Stack Configuration
+# Olivenet The Things Stack Configuration Template
 # Production-ready configuration for 3000+ energy meters
+#
+# This is a TEMPLATE file. Use deploy.sh to generate the actual config
+# or manually replace ${VARIABLE} placeholders.
 
 # =============================================================================
 # TLS Configuration
@@ -151,7 +154,7 @@ gs:
     use-traffic-tls-address: true
     allow-unauthenticated: false
 
-  # MQTT Protocol
+  # MQTT Protocol (for gateways)
   mqtt:
     listen: ":1883"
     listen-tls: ":${GS_MQTT_PORT}"
@@ -166,10 +169,6 @@ gs:
   # Gateway status update rate limit
   update-gateway-location-debounce-time: 5s
   update-connection-stats-debounce-time: 30s
-
-  # Packet broker (optional)
-  # packet-broker:
-  #   enabled: false
 
 # =============================================================================
 # Network Server Configuration
@@ -210,12 +209,6 @@ ns:
     ping-slot-data-rate-index: 3
     status-count-periodicity: 200
     status-time-periodicity: 86400s
-
-  # Interop (optional)
-  # interop:
-  #   config-source: file
-  #   blob:
-  #     bucket: /srv/ttn-lorawan/interop
 
 # =============================================================================
 # Application Server Configuration

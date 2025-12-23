@@ -1,8 +1,6 @@
 # Olivenet The Things Stack - Production Docker Compose
 # For 3000+ energy meter deployment
 
-version: "3.8"
-
 services:
   # ==========================================================================
   # PostgreSQL Database (Identity Server)
@@ -139,7 +137,7 @@ services:
       - blob_data:/srv/ttn-lorawan/public/blob
 
       # ACME certificates (Let's Encrypt)
-      - acme_data:/var/lib/acme
+      - ./acme:/var/lib/acme
 
       # Custom certificates (if using file-based TLS)
       # - ./certs/cert.pem:/run/secrets/cert.pem:ro
@@ -205,6 +203,4 @@ volumes:
   redis_data:
     driver: local
   blob_data:
-    driver: local
-  acme_data:
     driver: local

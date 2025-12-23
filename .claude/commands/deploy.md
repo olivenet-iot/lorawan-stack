@@ -8,107 +8,151 @@ TTS stack'i deploy eder veya günceller.
 |-----------|----------|
 | --check | Sadece preflight check yap |
 | --dry-run | Ne yapılacağını göster, yapma |
-| --force | Preflight uyarılarını atla |
+| --force | Mevcut .env'i overwrite et |
+| --skip-oauth | OAuth setup'ı atla (tekrar çalıştırma) |
 | --no-backup | Güncelleme öncesi backup alma |
-| --pull | Sadece image'ları güncelle |
 
 ## Prosedür
 
-### İlk Deployment
+### Otomatik Deployment (Önerilen)
+
+deploy.sh scripti tüm adımları otomatik yapar:
+
+```bash
+cd /home/ubuntu/lorawan-stack/deploy/olivenet
+./scripts/deploy.sh
+```
+
+**Script şunları yapar:**
+1. Kullanıcıdan domain ve email ister
+2. TLS seçimi (Let's Encrypt / Self-signed / None)
+3. Tüm secret'ları otomatik generate eder
+4. .env dosyası oluşturur
+5. ACME dizinini oluşturur (doğru izinlerle)
+6. Database'leri başlatır
+7. Migration yapar
+8. Admin user ve OAuth client'ları oluşturur
+9. OAuth grants'ları düzeltir (kritik!)
+10. Stack'i başlatır
+11. Admin credentials'ları gösterir
+
+### Dry Run
+
+Değişiklik yapmadan ne olacağını görmek için:
+
+```bash
+./scripts/deploy.sh --dry-run
+```
+
+### Tekrar Deployment
+
+Mevcut deployment'ı yeniden başlatmak için:
+
+```bash
+./scripts/deploy.sh --skip-oauth --force
+```
+
+### Manuel Deployment
+
+Eğer manuel yapmak isterseniz:
 
 1. **Preflight Check**
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet
 ./scripts/preflight-check.sh
 ```
-   - Kritik hata varsa DUR ve kullanıcıya bildir
-   - Uyarı varsa kullanıcıya sor
 
 2. **Environment Hazırlığı**
-   - .env dosyası yoksa:
 ```bash
 cp .env.example .env
-```
-   - Kullanıcıdan eksik değerleri iste
-   - Secret'ları generate et:
-```bash
-# Cookie keys
-openssl rand -hex 32  # HASH_KEY
+nano .env  # Değerleri doldurun
+
+# Secret'lar için:
+openssl rand -hex 32  # CONSOLE_OAUTH_CLIENT_SECRET
 openssl rand -hex 16  # BLOCK_KEY
-# OAuth secret
-openssl rand -hex 32
+openssl rand -hex 32  # HASH_KEY
 ```
 
-3. **Docker Network Oluştur**
+3. **ACME Dizini**
 ```bash
-docker network create olivenet-tts || true
+mkdir -p acme
+sudo chown 886:886 acme
 ```
 
-4. **Stack'i Başlat**
+4. **Database Başlat**
 ```bash
-docker compose pull
-docker compose up -d
+docker compose up -d postgres redis
+sleep 15
 ```
 
-5. **Database Migration**
+5. **Migration**
 ```bash
-docker compose exec stack /ttn-lw-stack is-db migrate
+docker compose run --rm stack is-db migrate
 ```
 
-6. **Admin User Oluştur** (ilk kurulum)
+6. **Admin User**
 ```bash
-docker compose exec stack /ttn-lw-stack is-db create-admin-user \
+docker compose run --rm stack is-db create-admin-user \
   --id admin \
-  --email admin@olivenet.com \
-  --password <generated>
+  --email admin@yourdomain.com \
+  --password <password>
 ```
 
-7. **Health Check**
+7. **OAuth Clients**
 ```bash
-./scripts/health-check.sh
+# CLI client
+docker compose run --rm stack is-db create-oauth-client \
+  --id cli --name "CLI" --owner admin --no-secret \
+  --redirect-uri "local-callback" --redirect-uri "code"
+
+# Console client
+docker compose run --rm stack is-db create-oauth-client \
+  --id console --name "Console" --owner admin \
+  --secret "${CONSOLE_OAUTH_CLIENT_SECRET}" \
+  --redirect-uri "https://yourdomain.com/console/oauth/callback" \
+  --logout-redirect-uri "https://yourdomain.com/console"
 ```
 
-### Güncelleme
-
-1. Mevcut durumu kontrol et:
+8. **OAuth Grants Fix (KRİTİK!)**
 ```bash
-./scripts/health-check.sh
+docker compose exec -T postgres psql -U ttn -d ttn_lorawan -c \
+  "UPDATE clients SET grants = '{0,2}', skip_authorization = true, endorsed = true WHERE client_id = 'console';"
 ```
 
-2. Backup al (--no-backup yoksa):
+9. **Stack Başlat**
 ```bash
+docker compose up -d stack
+```
+
+## Güncelleme
+
+```bash
+# Backup al
 ./scripts/backup.sh
-```
 
-3. Image'ları güncelle:
-```bash
+# Image güncelle
 docker compose pull
 docker compose up -d
-```
 
-4. Migration varsa çalıştır:
-```bash
-docker compose exec stack /ttn-lw-stack is-db migrate
-```
-
-5. Health check:
-```bash
-./scripts/health-check.sh
+# Migration (gerekirse)
+docker compose run --rm stack is-db migrate
 ```
 
 ## Başarı Durumu
 
 ```
-✓ TTS deployed successfully!
+╔════════════════════════════════════════════════════════════════╗
+║                   DEPLOYMENT COMPLETE                         ║
+╚════════════════════════════════════════════════════════════════╝
 
-Console: https://lora.olivenet.com
-Admin User: admin
-Admin Password: ********
+Console:  https://tts.olivenet.io/console
 
-Next steps:
-1. Login to Console
-2. Create an Application
-3. Add your first Gateway
+Admin Credentials
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Username: admin
+  Email:    admin@olivenet.io
+  Password: ************
+
+IMPORTANT: Change the admin password immediately after first login!
 ```
 
 ## Hata Durumları
@@ -117,8 +161,22 @@ Next steps:
 |------|-------|
 | Port in use | `ss -tlnp \| grep <port>` ile process'i bul |
 | Docker not running | `systemctl start docker` |
-| Migration failed | Logları göster, rollback öner |
-| Health check failed | `/troubleshoot` komutunu öner |
+| ACME failed | DNS kayıtları doğru mu? Port 80 açık mı? |
+| OAuth error | grants fix SQL komutunu çalıştır |
+| Migration failed | Logları göster: `docker compose logs stack` |
+
+## Kritik Notlar
+
+⚠️ **OAuth Grants**: Console login için grants fix SQL komutu kritik!
+```sql
+UPDATE clients SET grants = '{0,2}', skip_authorization = true, endorsed = true WHERE client_id = 'console';
+```
+
+⚠️ **ACME Permissions**: ACME dizini 886:886 olmalı (TTS container user)
+
+⚠️ **Config Template**: Değişiklik yapmak için:
+- `config/ttn-lw-stack.yml.template` - Template dosyası
+- `config/ttn-lw-stack.yml` - Aktif config
 
 ## İlgili Komutlar
 
