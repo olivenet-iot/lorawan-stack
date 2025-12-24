@@ -221,19 +221,16 @@ check_redis() {
         return 0
     fi
 
-    # Get password if set
+    # Build Redis command with password from .env if set
     local redis_cmd="redis-cli"
-    local redis_password
-    redis_password=$(docker inspect "$REDIS_CONTAINER" --format '{{range .Config.Cmd}}{{println .}}{{end}}' 2>/dev/null | grep -A1 'requirepass' | tail -1 || echo "")
-
-    if [[ -n "$redis_password" ]]; then
-        redis_cmd="redis-cli -a $redis_password"
+    if [[ -n "${REDIS_PASSWORD:-}" ]]; then
+        redis_cmd="redis-cli -a '$REDIS_PASSWORD' --no-auth-warning"
     fi
 
-    if docker exec "$REDIS_CONTAINER" $redis_cmd PING 2>/dev/null | grep -q "PONG"; then
+    if docker exec "$REDIS_CONTAINER" sh -c "$redis_cmd PING" 2>/dev/null | grep -q "PONG"; then
         # Check memory usage
         local used_memory
-        used_memory=$(docker exec "$REDIS_CONTAINER" $redis_cmd INFO memory 2>/dev/null | grep "used_memory_human" | cut -d: -f2 | tr -d '\r')
+        used_memory=$(docker exec "$REDIS_CONTAINER" sh -c "$redis_cmd INFO memory" 2>/dev/null | grep "used_memory_human" | cut -d: -f2 | tr -d '\r')
 
         if [[ -n "$used_memory" ]]; then
             RESULTS["redis"]="ok|Memory: $used_memory"

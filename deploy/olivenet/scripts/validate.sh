@@ -182,8 +182,14 @@ check_databases() {
         "docker exec $POSTGRES_CONTAINER pg_isready -U ttn" \
         "accepting"
 
+    # Build Redis command with password if set
+    local redis_cmd="redis-cli"
+    if [[ -n "${REDIS_PASSWORD:-}" ]]; then
+        redis_cmd="redis-cli -a '$REDIS_PASSWORD' --no-auth-warning"
+    fi
+
     check "Redis ping" \
-        "docker exec $REDIS_CONTAINER redis-cli ping" \
+        "docker exec $REDIS_CONTAINER $redis_cmd ping" \
         "PONG"
 }
 
