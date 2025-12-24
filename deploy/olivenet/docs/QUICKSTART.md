@@ -39,7 +39,7 @@ git --version
 ### Step 1: Clone the Repository
 
 ```bash
-sudo git clone -b v3.35 https://github.com/olivenet/lorawan-stack.git /opt/lorawan-stack
+sudo git clone -b v3.35 https://github.com/olivenet-iot/lorawan-stack.git /opt/lorawan-stack
 sudo chown -R $USER:docker /opt/lorawan-stack
 cd /opt/lorawan-stack/deploy/olivenet
 ```
