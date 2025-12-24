@@ -1,27 +1,27 @@
 # Gateway Simulator
 
-UDP Packet Forwarder protokolü ile TTS gateway bağlantısını test eder.
+Tests TTS gateway connection using UDP Packet Forwarder protocol.
 
-## Kullanım
+## Usage
 
 ```bash
-# Ortamı aktifle
+# Activate environment
 source activate.sh
 
-# Hızlı bağlantı testi
+# Quick connection test
 python3 gateway_simulator.py \
   --server tts.olivenet.io \
   --port 1700 \
   --eui AA555A0000000001 \
   --test-only
 
-# Sürekli çalıştır
+# Run continuously
 python3 gateway_simulator.py \
   --server tts.olivenet.io \
   --port 1700 \
   --eui AA555A0000000001
 
-# Debug modu
+# Debug mode
 python3 gateway_simulator.py \
   --server tts.olivenet.io \
   --port 1700 \
@@ -29,18 +29,18 @@ python3 gateway_simulator.py \
   --debug
 ```
 
-## Parametreler
+## Parameters
 
-| Parametre | Varsayılan | Açıklama |
-|-----------|------------|----------|
-| --server | localhost | TTS sunucu adresi |
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| --server | localhost | TTS server address |
 | --port | 1700 | UDP port |
 | --eui | AA555A0000000001 | Gateway EUI |
-| --test-only | false | Sadece bağlantı testi |
-| --debug | false | Debug çıktısı |
-| --interactive | false | İnteraktif mod |
+| --test-only | false | Connection test only |
+| --debug | false | Debug output |
+| --interactive | false | Interactive mode |
 
-## Beklenen Çıktı
+## Expected Output
 
 ```
 [12:00:00] Gateway AA555A0000000001 starting...
@@ -49,4 +49,4 @@ python3 gateway_simulator.py \
 [12:00:01] ✓ PULL_ACK received
 ```
 
-PULL_ACK alınması = Gateway Server bağlantısı başarılı.
+PULL_ACK received = Gateway Server connection successful.

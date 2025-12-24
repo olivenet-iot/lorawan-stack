@@ -1,32 +1,32 @@
-# /gateway Komutu
+# /gateway Command
 
-Gateway yönetimi.
+Gateway management.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| list | Gateway'leri listele |
-| create | Yeni gateway oluştur |
-| get | Gateway detayları |
-| delete | Gateway sil |
-| stats | Bağlantı istatistikleri |
-| status | Bağlantı durumu |
+| Parameter | Description |
+|-----------|-------------|
+| list | List gateways |
+| create | Create new gateway |
+| get | Gateway details |
+| delete | Delete gateway |
+| stats | Connection statistics |
+| status | Connection status |
 
-## Prosedür
+## Procedure
 
-### Gateway Listele
+### List Gateways
 
 ```bash
 ttn-lw-cli gateways list
 ```
 
-JSON formatı:
+JSON format:
 ```bash
 ttn-lw-cli gateways list --output-format json
 ```
 
-### Gateway Oluştur
+### Create Gateway
 
 ```bash
 ttn-lw-cli gateways create <gateway-id> \
@@ -35,7 +35,7 @@ ttn-lw-cli gateways create <gateway-id> \
   --name "Olivenet Gateway 1"
 ```
 
-Location ile:
+With location:
 ```bash
 ttn-lw-cli gateways create <gateway-id> \
   --gateway-eui <gateway-eui> \
@@ -46,42 +46,42 @@ ttn-lw-cli gateways create <gateway-id> \
   --antenna.location.altitude 50
 ```
 
-### Gateway Detayları
+### Gateway Details
 
 ```bash
 ttn-lw-cli gateways get <gateway-id>
 ```
 
-### Bağlantı Durumu
+### Connection Status
 
-API ile:
+Via API:
 ```bash
 curl -H "Authorization: Bearer $API_KEY" \
   "http://localhost:1885/api/v3/gs/gateways/<gateway-id>/connection/stats"
 ```
 
-CLI ile:
+Via CLI:
 ```bash
 ttn-lw-cli gateways get <gateway-id> --gateway-server-address
 ```
 
-### İstatistikler
+### Statistics
 
 ```bash
-# Gateway Server loglarından
+# From Gateway Server logs
 docker compose logs stack 2>&1 | grep "gateway_eui=<EUI>" | tail -50
 ```
 
-### Gateway Güncelle
+### Update Gateway
 
-Location güncelle:
+Update location:
 ```bash
 ttn-lw-cli gateways set <gateway-id> \
   --antenna.location.latitude 35.1856 \
   --antenna.location.longitude 33.3823
 ```
 
-### Gateway Sil
+### Delete Gateway
 
 ```bash
 ttn-lw-cli gateways delete <gateway-id>
@@ -95,31 +95,31 @@ ttn-lw-cli events subscribe --gateway-id <gateway-id>
 
 ## Frequency Plans
 
-Mevcut frequency plan'ları göster:
+Show available frequency plans:
 ```bash
 ttn-lw-cli frequency-plans list
 ```
 
-EU868 için:
+For EU868:
 - `EU_863_870` - EU 863-870 MHz
 - `EU_863_870_TTN` - TTN default
 
-## Gateway Protokolleri
+## Gateway Protocols
 
-| Protokol | Port | Açıklama |
-|----------|------|----------|
+| Protocol | Port | Description |
+|----------|------|-------------|
 | UDP Packet Forwarder | 1700/UDP | Legacy protocol |
 | BasicStation | 8887/WSS | Modern protocol |
 | MQTT | 1883/TCP | MQTT gateway |
 
-### UDP Packet Forwarder Bağlantısı
+### UDP Packet Forwarder Connection
 
 ```bash
-# Bağlantı testi
+# Connection test
 nc -uvz localhost 1700
 ```
 
-### BasicStation Bağlantısı
+### BasicStation Connection
 
 Gateway config:
 ```json
@@ -128,7 +128,7 @@ Gateway config:
 }
 ```
 
-## Örnek Çıktılar
+## Example Outputs
 
 ### Gateway List
 
@@ -156,29 +156,29 @@ gw-002          Olivenet GW 2       AA555A0000000002    Disconnected
 
 ## Troubleshooting
 
-### Gateway bağlanamıyor
+### Gateway not connecting
 
-1. EUI doğru mu?
-2. Port 1700 açık mı?
-3. Frequency plan uyumlu mu?
+1. Is EUI correct?
+2. Is port 1700 open?
+3. Is frequency plan compatible?
 
 ```bash
-# Logları kontrol et
+# Check logs
 docker compose logs stack 2>&1 | grep "gs:" | grep -i error
 ```
 
-### Uplink alınmıyor
+### Uplink not received
 
-1. Antenna bağlı mı?
-2. Device frequency doğru mu?
-3. RSSI/SNR yeterli mi?
+1. Is antenna connected?
+2. Is device frequency correct?
+3. Is RSSI/SNR sufficient?
 
-## İlgili Skill
+## Related Skill
 
-- `@gateway-management` - Detaylı gateway yönetimi
+- `@gateway-management` - Detailed gateway management
 
-## İlgili Komutlar
+## Related Commands
 
-- `/device` - Device yönetimi
-- `/simulate` - Gateway simülasyonu
-- `/test gateway` - Gateway bağlantı testi
+- `/device` - Device management
+- `/simulate` - Gateway simulation
+- `/test gateway` - Gateway connection test

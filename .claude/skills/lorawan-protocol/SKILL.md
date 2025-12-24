@@ -2,21 +2,21 @@
 
 ## Overview
 
-LoRaWAN protokol implementasyonu, The Things Stack'in çekirdeğini oluşturur. Bu skill, MAC commands, class A/B/C operasyonları, uplink/downlink processing, join procedure ve encryption mekanizmalarını kapsar.
+The LoRaWAN protocol implementation forms the core of The Things Stack. This skill covers MAC commands, class A/B/C operations, uplink/downlink processing, join procedure, and encryption mechanisms.
 
 ## Key Concepts
 
 ### Message Types (MType)
 
-| MType | Değer | Açıklama |
-|-------|-------|----------|
-| JOIN_REQUEST | 0 | OTAA join isteği |
-| JOIN_ACCEPT | 1 | Join kabul yanıtı |
-| UNCONFIRMED_UP | 2 | Onaysız uplink |
-| UNCONFIRMED_DOWN | 3 | Onaysız downlink |
-| CONFIRMED_UP | 4 | Onaylı uplink (ACK bekleniyor) |
-| CONFIRMED_DOWN | 5 | Onaylı downlink (ACK bekleniyor) |
-| REJOIN_REQUEST | 6 | Rejoin isteği (LoRaWAN 1.1) |
+| MType | Value | Description |
+|-------|-------|-------------|
+| JOIN_REQUEST | 0 | OTAA join request |
+| JOIN_ACCEPT | 1 | Join accept response |
+| UNCONFIRMED_UP | 2 | Unconfirmed uplink |
+| UNCONFIRMED_DOWN | 3 | Unconfirmed downlink |
+| CONFIRMED_UP | 4 | Confirmed uplink (ACK expected) |
+| CONFIRMED_DOWN | 5 | Confirmed downlink (ACK expected) |
+| REJOIN_REQUEST | 6 | Rejoin request (LoRaWAN 1.1) |
 | PROPRIETARY | 7 | Proprietary frame |
 
 ### LoRaWAN Versions
@@ -79,17 +79,17 @@ FHDR = DevAddr(4B) | FCtrl(1B) | FCnt(2B) | FOpts(0-15B)
 
 ### Network Server MAC Command Files
 
-`pkg/networkserver/mac/` dizininde 30+ MAC command implementasyonu bulunur:
+30+ MAC command implementations are located in the `pkg/networkserver/mac/` directory:
 
-| Dosya | MAC Command | CID | Açıklama |
-|-------|-------------|-----|----------|
+| File | MAC Command | CID | Description |
+|------|-------------|-----|-------------|
 | `adr.go` | LinkADR | 0x03 | Adaptive Data Rate |
-| `link_adr.go` | LinkADRAns | 0x03 | ADR yanıtı |
+| `link_adr.go` | LinkADRAns | 0x03 | ADR response |
 | `link_check.go` | LinkCheck | 0x02 | Link quality check |
 | `dev_status.go` | DevStatus | 0x06 | Device status request |
-| `new_channel.go` | NewChannel | 0x07 | Yeni kanal tanımlama |
+| `new_channel.go` | NewChannel | 0x07 | New channel definition |
 | `rx_param_setup.go` | RXParamSetup | 0x05 | RX2 parameters |
-| `rx_timing_setup.go` | RXTimingSetup | 0x08 | RX1 delay ayarı |
+| `rx_timing_setup.go` | RXTimingSetup | 0x08 | RX1 delay setting |
 | `tx_param_setup.go` | TXParamSetup | 0x09 | Max EIRP/dwell time |
 | `dl_channel.go` | DLChannel | 0x0A | Downlink channel |
 | `duty_cycle.go` | DutyCycle | 0x04 | Duty cycle limit |
@@ -378,8 +378,8 @@ DATA_RATE_7: FSK (50000 bps)
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | LoRaWAN Proto | `api/ttn/lorawan/v3/lorawan.proto` |
 | Messages Proto | `api/ttn/lorawan/v3/messages.proto` |
 | Join Proto | `api/ttn/lorawan/v3/join.proto` |
@@ -398,27 +398,27 @@ DATA_RATE_7: FSK (50000 bps)
 ## Troubleshooting
 
 ### MIC Verification Failure
-- Key mismatch: Doğru root keys/session keys kontrol et
-- Frame counter: Counter mismatch olabilir
-- Version mismatch: MAC version uyumsuzluğu
+- Key mismatch: Check correct root keys/session keys
+- Frame counter: Counter mismatch possible
+- Version mismatch: MAC version incompatibility
 
-### Join Request Başarısız
-- JoinEUI/DevEUI formatı kontrol et
-- AppKey doğruluğunu kontrol et
-- DevNonce tekrarı (replay attack koruması)
+### Join Request Failed
+- Check JoinEUI/DevEUI format
+- Check AppKey correctness
+- DevNonce repeat (replay attack protection)
 
 ### Frame Counter Mismatch
-- `resets_f_cnt` ayarını kontrol et
-- 16-bit vs 32-bit counter desteği
-- Device'ın power cycle yapıp yapmadığını kontrol et
+- Check `resets_f_cnt` setting
+- 16-bit vs 32-bit counter support
+- Check if device did power cycle
 
-### ADR Çalışmıyor
-- `adr.mode` ayarını kontrol et
-- Device'ın ADR desteği olmalı
-- Yeterli uplink geçmişi gerekli
+### ADR Not Working
+- Check `adr.mode` setting
+- Device must support ADR
+- Sufficient uplink history required
 
-### Downlink Alınamıyor
-- Class A: Uplink sonrası RX window'da olmalı
-- Class B: Beacon sync yapılmış olmalı
-- Class C: `supports_class_c: true` olmalı
-- Duty cycle limiti aşılmış olabilir
+### Downlink Not Received
+- Class A: Must be in RX window after uplink
+- Class B: Beacon sync must be completed
+- Class C: `supports_class_c: true` must be set
+- Duty cycle limit may be exceeded

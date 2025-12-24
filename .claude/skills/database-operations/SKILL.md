@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Things Stack iki ana veri deposu kullanır: PostgreSQL (Identity Server için) ve Redis (NS, AS, JS, GS için real-time state). Bu skill, database schema, migrations, backup/restore ve query optimization konularını kapsar.
+The Things Stack uses two main data stores: PostgreSQL (for Identity Server) and Redis (for NS, AS, JS, GS real-time state). This skill covers database schema, migrations, backup/restore, and query optimization.
 
 ## Key Concepts
 
@@ -464,8 +464,8 @@ js:
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | IS Store | `pkg/identityserver/store/` |
 | IS Migrations | `pkg/identityserver/store/migrations/` |
 | NS Redis | `pkg/networkserver/redis/` |
@@ -477,35 +477,35 @@ js:
 
 ## Troubleshooting
 
-### PostgreSQL Bağlantı Hatası
-- Connection string formatını kontrol et
-- Database'in var olduğunu doğrula
-- User yetkilerini kontrol et
-- `pg_isready -h localhost -U ttn` ile test et
+### PostgreSQL Connection Error
+- Check connection string format
+- Verify database exists
+- Check user permissions
+- Test with `pg_isready -h localhost -U ttn`
 
-### Migration Hatası
-- Önceki migration'ların tamamlandığını doğrula
-- Database schema uyumluluğunu kontrol et
-- Log'ları incele
+### Migration Error
+- Verify previous migrations are complete
+- Check database schema compatibility
+- Review logs
 
-### Redis Memory Yetersiz
-- `maxmemory` ayarını kontrol et
-- Eski key'leri temizle
-- RDB/AOF boyutunu kontrol et
-- `MEMORY DOCTOR` çalıştır
+### Redis Memory Insufficient
+- Check `maxmemory` setting
+- Clean up old keys
+- Check RDB/AOF size
+- Run `MEMORY DOCTOR`
 
-### Device State Kayıp
-- Redis persistence (RDB/AOF) aktif olmalı
-- Backup'tan restore et
-- ABP: Session yeniden configure et
-- OTAA: Device rejoin yapacak
+### Device State Lost
+- Redis persistence (RDB/AOF) must be active
+- Restore from backup
+- ABP: Reconfigure session
+- OTAA: Device will rejoin
 
 ### Slow Queries
-- PostgreSQL: `pg_stat_statements` enable et
-- Redis: `SLOWLOG GET 10` ile yavaş komutları bul
-- Index eksikliğini kontrol et
+- PostgreSQL: Enable `pg_stat_statements`
+- Redis: Find slow commands with `SLOWLOG GET 10`
+- Check for missing indexes
 
 ### Connection Pool Exhausted
-- `max-open-connections` artır
-- Bağlantı leaks kontrol et
-- Idle connection timeout ayarla
+- Increase `max-open-connections`
+- Check for connection leaks
+- Set idle connection timeout

@@ -2,27 +2,27 @@
 
 ## Overview
 
-Gateway yönetimi, The Things Stack'e gateway bağlantıları, yapılandırma, protokol seçimi ve durum izleme işlemlerini kapsar. Bu skill, gateway registration, protokol seçenekleri ve operasyonel yönetim için gerekli bilgileri içerir.
+Gateway management covers gateway connections to The Things Stack, configuration, protocol selection, and status monitoring. This skill contains the necessary information for gateway registration, protocol options, and operational management.
 
 ## Key Concepts
 
-### Desteklenen Gateway Protokolleri
+### Supported Gateway Protocols
 
-| Protokol | Implementasyon | Port | Açıklama |
-|----------|---------------|------|----------|
+| Protocol | Implementation | Port | Description |
+|----------|---------------|------|-------------|
 | UDP Packet Forwarder | `pkg/gatewayserver/io/udp/` | 1700 | Semtech UDP protocol |
 | BasicStation (LNS) | `pkg/gatewayserver/io/semtechws/` | 8887 | WebSocket-based |
 | MQTT | `pkg/gatewayserver/io/mqtt/` | 1882/8882 | MQTT v3.1.1 |
 | TTI Gateway | `pkg/gatewayserver/io/ttigw/` | - | TTI proprietary |
 | gRPC | `pkg/gatewayserver/io/grpc/` | 8884 | Native gRPC |
 
-### Gateway Servisleri
+### Gateway Services
 
 ```protobuf
 // api/ttn/lorawan/v3/gatewayserver.proto
 
 service GtwGs {
-  // Gateway bağlantısı (bidirectional stream)
+  // Gateway connection (bidirectional stream)
   rpc LinkGateway(stream GatewayUp) returns (stream GatewayDown);
   // Concentrator config
   rpc GetConcentratorConfig(Empty) returns (ConcentratorConfig);
@@ -31,7 +31,7 @@ service GtwGs {
 }
 
 service NsGs {
-  // Network Server'dan downlink scheduling
+  // Downlink scheduling from Network Server
   rpc ScheduleDownlink(DownlinkMessage) returns (ScheduleDownlinkResponse);
 }
 
@@ -42,7 +42,7 @@ service Gs {
 }
 ```
 
-### Gateway Veri Yapısı
+### Gateway Data Structure
 
 ```protobuf
 // api/ttn/lorawan/v3/gateway.proto:106
@@ -112,7 +112,7 @@ POST /gateways
 }
 ```
 
-### Task 2: UDP Packet Forwarder Yapılandırma
+### Task 2: UDP Packet Forwarder Configuration
 
 **Files**:
 - `pkg/gatewayserver/io/udp/udp.go`
@@ -151,7 +151,7 @@ gs:
       messages-jitter: 0.1
 ```
 
-### Task 3: BasicStation (LNS) Yapılandırma
+### Task 3: BasicStation (LNS) Configuration
 
 **Files**:
 - `pkg/gatewayserver/io/semtechws/ws.go`
@@ -185,7 +185,7 @@ gs:
 5. Server sends DNMSG (downlink messages)
 ```
 
-### Task 4: MQTT Gateway Yapılandırma
+### Task 4: MQTT Gateway Configuration
 
 **Files**:
 - `pkg/gatewayserver/io/mqtt/mqtt.go`
@@ -439,8 +439,8 @@ AU_915_928_FSB_2
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | Gateway Proto | `api/ttn/lorawan/v3/gateway.proto` |
 | Gateway Server Proto | `api/ttn/lorawan/v3/gatewayserver.proto` |
 | Gateway Services Proto | `api/ttn/lorawan/v3/gateway_services.proto` |
@@ -458,35 +458,35 @@ AU_915_928_FSB_2
 
 ## Troubleshooting
 
-### Gateway Bağlanmıyor (UDP)
-- Port 1700'ün açık olduğunu kontrol et
-- Gateway EUI'nin kayıtlı olduğunu doğrula
-- `require-registered-gateways: true` ise gateway kayıtlı olmalı
-- UDP firewall rate limiting kontrol et
+### Gateway Not Connecting (UDP)
+- Check port 1700 is open
+- Verify gateway EUI is registered
+- If `require-registered-gateways: true`, gateway must be registered
+- Check UDP firewall rate limiting
 
-### BasicStation Bağlantı Hatası
-- TLS sertifikasının geçerli olduğunu kontrol et
-- tc.uri dosyasında doğru URL olduğunu doğrula
-- API key'in geçerli olduğunu kontrol et
-- WebSocket portuna (8887) erişimi kontrol et
+### BasicStation Connection Error
+- Check TLS certificate is valid
+- Verify correct URL in tc.uri file
+- Check API key is valid
+- Verify access to WebSocket port (8887)
 
-### MQTT Authentication Hatası
-- Username formatı: `gateway-id@ttn`
+### MQTT Authentication Error
+- Username format: `gateway-id@ttn`
 - Password: API key
-- TLS kullanılıyorsa doğru portu kullan (8882)
+- Use correct port if using TLS (8882)
 
-### Downlink Başarısız
-- Duty cycle limiti aşılmış olabilir
-- Gateway timing offset kontrol et
-- Frequency plan uyumunu kontrol et
-- `schedule_downlink_late` ayarını kontrol et
+### Downlink Failed
+- Duty cycle limit may be exceeded
+- Check gateway timing offset
+- Check frequency plan compatibility
+- Check `schedule_downlink_late` setting
 
-### Status Mesajları Gelmiyor
-- Gateway stat_interval ayarını kontrol et
-- `forward-status-messages: true` olmalı
-- Network bağlantısını kontrol et
+### Status Messages Not Arriving
+- Check gateway stat_interval setting
+- `forward-status-messages: true` must be set
+- Check network connection
 
-### Location Güncellenmiyor
-- `update_location_from_status: true` olmalı
-- Gateway'in GPS'i olmalı
-- Status mesajlarında lokasyon bilgisi olmalı
+### Location Not Updating
+- `update_location_from_status: true` must be set
+- Gateway must have GPS
+- Status messages must contain location information

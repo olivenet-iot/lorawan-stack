@@ -1,22 +1,22 @@
-# /test Komutu
+# /test Command
 
-Sistem testlerini çalıştırır.
+Runs system tests.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| gateway | Gateway bağlantı testi |
-| device | Device join testi |
-| api | API endpoint testi |
-| all | Tüm testler |
-| --scenario FILE | Scenario dosyası ile test |
+| Parameter | Description |
+|-----------|-------------|
+| gateway | Gateway connection test |
+| device | Device join test |
+| api | API endpoint test |
+| all | All tests |
+| --scenario FILE | Test with scenario file |
 
-## Prosedür
+## Procedure
 
 ### /test gateway
 
-Gateway bağlantı testi:
+Gateway connection test:
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/simulator
@@ -24,14 +24,14 @@ source venv/bin/activate
 python gateway_simulator.py --test-only
 ```
 
-Beklenen çıktı:
-- PULL_DATA gönderildi
-- PULL_ACK alındı
-- Bağlantı başarılı
+Expected output:
+- PULL_DATA sent
+- PULL_ACK received
+- Connection successful
 
 ### /test device
 
-Device join testi:
+Device join test:
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/simulator
@@ -40,29 +40,29 @@ python join_tester.py \
   --app-key 00112233445566778899AABBCCDDEEFF
 ```
 
-**Not:** Device TTS'de kayıtlı olmalı!
+**Note:** Device must be registered in TTS!
 
 ### /test api
 
-API endpoint testi:
+API endpoint test:
 
 ```bash
 # Health endpoint
 curl -s http://localhost:1885/healthz
 
-# Authenticated endpoint (API key gerekli)
+# Authenticated endpoint (API key required)
 curl -s -H "Authorization: Bearer $API_KEY" \
   http://localhost:1885/api/v3/applications
 ```
 
 ### /test all
 
-Sırayla tüm testleri çalıştır:
+Run all tests sequentially:
 1. API tests
 2. Gateway tests
 3. Device tests
 
-## Test Sonuçları
+## Test Results
 
 ```
 Test Results - 2025-01-22 12:34:56
@@ -85,21 +85,21 @@ Device Tests:
 Summary: 9/9 tests passed
 ```
 
-## Senaryo Testi
+## Scenario Test
 
 ```bash
 python device_simulator.py --scenario scenarios/single_device.yml
 ```
 
-## Hata Durumları
+## Error States
 
-| Hata | Olası Sebep |
-|------|-------------|
-| Gateway connection failed | Port 1700 kapalı, TTS çalışmıyor |
-| Join timeout | Device kayıtlı değil, AppKey yanlış |
-| API 401 | API key geçersiz veya eksik |
+| Error | Possible Cause |
+|-------|----------------|
+| Gateway connection failed | Port 1700 closed, TTS not running |
+| Join timeout | Device not registered, wrong AppKey |
+| API 401 | Invalid or missing API key |
 
-## İlgili Komutlar
+## Related Commands
 
-- `/simulate` - Daha kapsamlı simülasyon
-- `/troubleshoot` - Hata analizi
+- `/simulate` - More comprehensive simulation
+- `/troubleshoot` - Error analysis

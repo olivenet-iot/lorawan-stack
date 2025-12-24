@@ -1,12 +1,12 @@
-# TTS Kurulum ve Dogrulama Rehberi
+# TTS Installation and Validation Guide
 
-Bu rehber, The Things Stack kurulumunu adim adim aciklar ve her adimin nasil dogrulanacagini gosterir.
+This guide explains The Things Stack installation step by step and shows how to validate each step.
 
 ---
 
-## On Gereksinimler
+## Prerequisites
 
-### 1. Docker Kurulumu
+### 1. Docker Installation
 
 ```bash
 curl -fsSL https://get.docker.com | sh
@@ -14,29 +14,29 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-**Dogrulama:**
+**Validation:**
 ```bash
 docker --version
-# Beklenen: Docker version 24.x veya uzeri
+# Expected: Docker version 24.x or higher
 ```
 
-### 2. Git Kurulumu
+### 2. Git Installation
 
 ```bash
 sudo apt update && sudo apt install -y git
 ```
 
-**Dogrulama:**
+**Validation:**
 ```bash
 git --version
-# Beklenen: git version 2.x
+# Expected: git version 2.x
 ```
 
 ---
 
-## Kurulum Adimlari
+## Installation Steps
 
-### Adim 1: Repo'yu Clone Et
+### Step 1: Clone the Repository
 
 ```bash
 sudo git clone -b v3.35 https://github.com/olivenet/lorawan-stack.git /opt/lorawan-stack
@@ -44,25 +44,25 @@ sudo chown -R $USER:docker /opt/lorawan-stack
 cd /opt/lorawan-stack/deploy/olivenet
 ```
 
-**Dogrulama:**
+**Validation:**
 ```bash
 ls -la scripts/deploy.sh
-# Beklenen: -rwxr-xr-x ... scripts/deploy.sh
+# Expected: -rwxr-xr-x ... scripts/deploy.sh
 ```
 
-### Adim 2: Deployment Baslat
+### Step 2: Start Deployment
 
 ```bash
 ./scripts/deploy.sh
 ```
 
-**Sorular:**
+**Questions:**
 - Domain: `tts.yourdomain.com`
 - Email: `admin@yourdomain.com`
 - TLS: `1` (Let's Encrypt)
 - Testing tools: `Y`
 
-**Beklenen Cikti:**
+**Expected Output:**
 ```
 +================================================================+
 |                   DEPLOYMENT COMPLETE                          |
@@ -77,13 +77,13 @@ Admin Credentials
   Password: <generated>
 ```
 
-### Adim 3: Health Check
+### Step 3: Health Check
 
 ```bash
 ./scripts/health-check.sh
 ```
 
-**Beklenen Cikti:**
+**Expected Output:**
 ```
 Olivenet TTS Health Check
 ==========================
@@ -98,13 +98,13 @@ Olivenet TTS Health Check
 Status: HEALTHY
 ```
 
-### Adim 4: Validasyon
+### Step 4: Validation
 
 ```bash
 ./scripts/validate.sh
 ```
 
-**Beklenen Cikti:**
+**Expected Output:**
 ```
 ================================================================
   Passed: 10+    Warnings: 0-2    Failed: 0
@@ -113,14 +113,14 @@ Status: HEALTHY
 All critical checks passed!
 ```
 
-### Adim 5: Gateway Baglanti Testi
+### Step 5: Gateway Connection Test
 
 ```bash
 source simulator/activate.sh
 python3 gateway_simulator.py --server YOUR_DOMAIN --port 1700 --eui AA555A0000000001 --test-only
 ```
 
-**Beklenen Cikti:**
+**Expected Output:**
 ```
 [12:00:00] Gateway AA555A0000000001 starting...
 [12:00:00] Connecting to YOUR_DOMAIN:1700
@@ -129,23 +129,23 @@ python3 gateway_simulator.py --server YOUR_DOMAIN --port 1700 --eui AA555A000000
 [12:00:01] Test mode: connection verified, exiting
 ```
 
-### Adim 6: Console Erisimi
+### Step 6: Console Access
 
-1. Browser'da ac: `https://YOUR_DOMAIN/console`
-2. Deployment'tan aldigin credentials ile giris yap
-3. Dashboard gorunmeli
+1. Open in browser: `https://YOUR_DOMAIN/console`
+2. Login with credentials from deployment
+3. Dashboard should be visible
 
-**Dogrulama:**
+**Validation:**
 ```bash
 curl -sk https://YOUR_DOMAIN/healthz | jq .status
-# Beklenen: "OK"
+# Expected: "OK"
 ```
 
-### Adim 7: MQTT Testi (Opsiyonel)
+### Step 7: MQTT Test (Optional)
 
-1. Console'da bir Application olustur
+1. Create an Application in Console
 2. Application -> Integrations -> MQTT -> Generate API Key
-3. Test et:
+3. Test:
 
 ```bash
 mosquitto_sub -h YOUR_DOMAIN -p 8883 \
@@ -156,77 +156,77 @@ mosquitto_sub -h YOUR_DOMAIN -p 8883 \
   -d -C 1 -W 10
 ```
 
-Beklenen: Baglanti basarili (veri yoksa timeout normal)
+Expected: Connection successful (timeout is normal if no data)
 
 ---
 
-## Sorun Giderme
+## Troubleshooting
 
-### Container Baslamiyor
+### Container Not Starting
 
 ```bash
 docker logs olivenet-stack --tail 50
 ```
 
-### Console'a Giris Yapilamiyor
+### Cannot Login to Console
 
 ```bash
-# OAuth grants kontrolu
+# OAuth grants check
 docker exec olivenet-postgres psql -U ttn -d ttn_lorawan -c \
   "SELECT client_id, grants FROM clients WHERE client_id = 'console';"
-# Beklenen: {0,2}
+# Expected: {0,2}
 
-# Duzeltme:
+# Fix:
 docker exec olivenet-postgres psql -U ttn -d ttn_lorawan -c \
   "UPDATE clients SET grants = '{0,2}', skip_authorization = true WHERE client_id = 'console';"
 docker compose restart stack
 ```
 
-### Gateway Baglanmiyor
+### Gateway Not Connecting
 
 ```bash
-# Port kontrolu
+# Port check
 docker exec olivenet-stack netstat -ulnp | grep 1700
-# Beklenen: :::1700
+# Expected: :::1700
 
-# Firewall kontrolu
+# Firewall check
 sudo ufw status
 sudo ufw allow 1700/udp
 ```
 
-### TLS Sertifikasi Yok
+### No TLS Certificate
 
 ```bash
-# ACME dizini kontrolu
+# ACME directory check
 ls -la acme/
-# Beklenen: 886:886 ownership
+# Expected: 886:886 ownership
 
-# Duzeltme:
+# Fix:
 sudo chown -R 886:886 acme/
 docker compose restart stack
 ```
 
 ---
 
-## Hizli Referans
+## Quick Reference
 
-| Komut | Aciklama |
-|-------|----------|
-| `./scripts/deploy.sh` | Kurulum baslat |
-| `./scripts/health-check.sh` | Servis durumu |
-| `./scripts/validate.sh` | Tam dogrulama |
-| `./scripts/setup-tools.sh` | Test araclari kur |
-| `./scripts/backup.sh` | Yedek al |
-| `./scripts/restore.sh` | Yedegi geri yukle |
-| `docker compose logs -f stack` | Canli loglar |
-| `docker compose restart stack` | Stack yeniden baslat |
+| Command | Description |
+|---------|-------------|
+| `./scripts/deploy.sh` | Start installation |
+| `./scripts/health-check.sh` | Service status |
+| `./scripts/validate.sh` | Full validation |
+| `./scripts/setup-tools.sh` | Install test tools |
+| `./scripts/backup.sh` | Create backup |
+| `./scripts/restore.sh` | Restore from backup |
+| `docker compose logs -f stack` | Live logs |
+| `docker compose restart stack` | Restart stack |
 
 ---
 
-## Port Referansi
+## Port Reference
 
-| Port | Protokol | Kullanim |
-|------|----------|----------|
+| Port | Protocol | Usage |
+|------|----------|-------|
 | 80 | HTTP | Console/API (redirect) |
 | 443 | HTTPS | Console/API |
 | 1700/UDP | Semtech UDP | Gateway Packet Forwarder |

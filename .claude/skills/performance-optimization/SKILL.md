@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Things Stack performans optimizasyonu, büyük ölçekli IoT deploymentları için kritiktir. Bu skill, Redis/PostgreSQL tuning, connection pooling, batch operations, caching strategies ve kaynak yönetimi konularını kapsar.
+The Things Stack performance optimization is critical for large-scale IoT deployments. This skill covers Redis/PostgreSQL tuning, connection pooling, batch operations, caching strategies, and resource management.
 
 ## Key Concepts
 
@@ -40,11 +40,11 @@ The Things Stack performans optimizasyonu, büyük ölçekli IoT deploymentları
 
 | Component | Horizontal | Vertical | Notes |
 |-----------|------------|----------|-------|
-| Gateway Server | ✓ | ✓ | Gateway'ler farklı GS'lere bağlanabilir |
-| Network Server | ✓ | ✓ | DevAddr routing gerektirir |
-| Application Server | ✓ | ✓ | Stateless, kolayca scale edilir |
-| Identity Server | △ | ✓ | PostgreSQL limitleri var |
-| Join Server | ✓ | ✓ | Join request'ler dağıtılabilir |
+| Gateway Server | Yes | Yes | Gateways can connect to different GS instances |
+| Network Server | Yes | Yes | Requires DevAddr routing |
+| Application Server | Yes | Yes | Stateless, easily scalable |
+| Identity Server | Partial | Yes | PostgreSQL limitations apply |
+| Join Server | Yes | Yes | Join requests can be distributed |
 
 ## Redis Optimization
 
@@ -487,8 +487,8 @@ log:
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | Redis Config | Component `redis` sections |
 | PostgreSQL Config | `is.database-uri`, `is.database` |
 | Rate Limiting | `rate-limiting` section |
@@ -500,26 +500,26 @@ log:
 ## Troubleshooting
 
 ### High CPU Usage
-- pprof ile profile al
-- Encryption/MIC calculation overhead olabilir
-- Log level'ı azalt
+- Take profile with pprof
+- May be encryption/MIC calculation overhead
+- Reduce log level
 
 ### High Memory Usage
-- Redis maxmemory kontrol et
-- Go heap profile al
-- Connection buffer'ları kontrol et
+- Check Redis maxmemory
+- Take Go heap profile
+- Check connection buffers
 
 ### Slow API Response
-- Database query'leri optimize et
-- Connection pool boyutunu artır
-- Cache enable et
+- Optimize database queries
+- Increase connection pool size
+- Enable caching
 
 ### Message Delays
-- Deduplication window'u kontrol et
-- Gateway'den GS'ye latency
+- Check deduplication window
+- Gateway to GS latency
 - Redis round-trip time
 
 ### Rate Limiting Triggered
-- Rate limit threshold'larını artır
-- Burst size'ı artır
-- Traffic pattern'ı analiz et
+- Increase rate limit thresholds
+- Increase burst size
+- Analyze traffic patterns

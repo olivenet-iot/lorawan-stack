@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Things Stack iç mimarisi, microservice benzeri component yapısı, gRPC-based inter-service communication, event system ve cluster mode'dan oluşur. Bu skill, stack'in iç çalışma mekanizmalarını ve component etkileşimlerini kapsar.
+The Things Stack internal architecture consists of a microservice-like component structure, gRPC-based inter-service communication, event system, and cluster mode. This skill covers the stack's internal workings and component interactions.
 
 ## Key Concepts
 
@@ -449,8 +449,8 @@ tls:
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | Component Base | `pkg/component/component.go` |
 | Gateway Server | `pkg/gatewayserver/gatewayserver.go` |
 | Network Server | `pkg/networkserver/networkserver.go` |
@@ -466,26 +466,26 @@ tls:
 
 ## Troubleshooting
 
-### Component Bağlantı Hatası
-- Cluster configuration'ı kontrol et
-- TLS sertifikalarını doğrula
-- Portların açık olduğunu kontrol et
+### Component Connection Error
+- Check cluster configuration
+- Validate TLS certificates
+- Check ports are open
 
-### Event Kayıp
-- Event pubsub bağlantısını kontrol et
-- Redis bağlantısını doğrula
+### Event Loss
+- Check event pubsub connection
+- Verify Redis connection
 
-### Yetkilendirme Hatası
-- API key rights'larını kontrol et
-- Context'te auth bilgisinin propagate edildiğini doğrula
-- Identity Server bağlantısını kontrol et
+### Authorization Error
+- Check API key rights
+- Verify auth info is propagated in context
+- Check Identity Server connection
 
-### Uplink AS'e Ulaşmıyor
-- NS-AS arası gRPC bağlantısını kontrol et
-- Device'ın AS'te kayıtlı olduğunu doğrula
-- Application link durumunu kontrol et
+### Uplink Not Reaching AS
+- Check NS-AS gRPC connection
+- Verify device is registered in AS
+- Check application link status
 
-### Downlink Zamanlanamıyor
-- NS-GS arası bağlantıyı kontrol et
-- Gateway'in bağlı olduğunu doğrula
-- Duty cycle limitini kontrol et
+### Downlink Cannot Be Scheduled
+- Check NS-GS connection
+- Verify gateway is connected
+- Check duty cycle limit

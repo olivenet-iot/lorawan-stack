@@ -1,25 +1,25 @@
-# /status Komutu
+# /status Command
 
-Sistem durumunu gösterir.
+Shows system status.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| --json | JSON formatında output |
-| --watch | Sürekli güncelle (5s) |
-| --component NAME | Belirli component (stack, postgres, redis) |
+| Parameter | Description |
+|-----------|-------------|
+| --json | JSON format output |
+| --watch | Continuous update (5s) |
+| --component NAME | Specific component (stack, postgres, redis) |
 
-## Prosedür
+## Procedure
 
-### 1. Health Check Çalıştır
+### 1. Run Health Check
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/scripts
 ./health-check.sh
 ```
 
-JSON formatı için:
+For JSON format:
 ```bash
 ./health-check.sh --json
 ```
@@ -55,37 +55,37 @@ docker compose logs --tail 50 | grep -i error
 curl -s http://localhost:1885/healthz
 ```
 
-## Beklenen Output
+## Expected Output
 
 ```
-╔══════════════════════════════════════════════════════╗
-║              TTS Status - Olivenet                   ║
-╠══════════════════════════════════════════════════════╣
-║ Stack:      ✓ Running (uptime: 5d 12h 34m)          ║
-║ PostgreSQL: ✓ Running                                ║
-║ Redis:      ✓ Running                                ║
-╟──────────────────────────────────────────────────────╢
-║ Resources                                            ║
-╟──────────────────────────────────────────────────────╢
-║ CPU:    12% │ Memory: 2.4GB/8GB │ Disk: 45GB/100GB  ║
-╟──────────────────────────────────────────────────────╢
-║ Stack Components                                     ║
-╟──────────────────────────────────────────────────────╢
-║ Identity Server:    ✓ Healthy                        ║
-║ Gateway Server:     ✓ Healthy (2 gateways connected) ║
-║ Network Server:     ✓ Healthy                        ║
-║ Application Server: ✓ Healthy                        ║
-║ Join Server:        ✓ Healthy                        ║
-╟──────────────────────────────────────────────────────╢
-║ Statistics (24h)                                     ║
-╟──────────────────────────────────────────────────────╢
-║ Uplinks:   125,432 │ Downlinks: 8,234 │ Joins: 45   ║
-╟──────────────────────────────────────────────────────╢
-║ Last Backup: 2025-01-22 02:00 (6 hours ago)         ║
-╚══════════════════════════════════════════════════════╝
++======================================================+
+|              TTS Status - Olivenet                   |
++======================================================+
+| Stack:      ✓ Running (uptime: 5d 12h 34m)          |
+| PostgreSQL: ✓ Running                                |
+| Redis:      ✓ Running                                |
++------------------------------------------------------+
+| Resources                                            |
++------------------------------------------------------+
+| CPU:    12% | Memory: 2.4GB/8GB | Disk: 45GB/100GB  |
++------------------------------------------------------+
+| Stack Components                                     |
++------------------------------------------------------+
+| Identity Server:    ✓ Healthy                        |
+| Gateway Server:     ✓ Healthy (2 gateways connected) |
+| Network Server:     ✓ Healthy                        |
+| Application Server: ✓ Healthy                        |
+| Join Server:        ✓ Healthy                        |
++------------------------------------------------------+
+| Statistics (24h)                                     |
++------------------------------------------------------+
+| Uplinks:   125,432 | Downlinks: 8,234 | Joins: 45   |
++------------------------------------------------------+
+| Last Backup: 2025-01-22 02:00 (6 hours ago)         |
++======================================================+
 ```
 
-## Component Detayları
+## Component Details
 
 ### stack
 - HTTP API health
@@ -102,7 +102,7 @@ curl -s http://localhost:1885/healthz
 - Connection count
 - Keyspace info
 
-## İlgili Komutlar
+## Related Commands
 
-- `/logs` - Detaylı log görüntüleme
-- `/troubleshoot` - Sorun giderme
+- `/logs` - Detailed log viewing
+- `/troubleshoot` - Troubleshooting

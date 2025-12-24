@@ -2,18 +2,18 @@
 
 ## Overview
 
-End device lifecycle yönetimi, The Things Stack'in temel operasyonlarından biridir. Bu skill, OTAA/ABP device registration, session management, MAC settings yapılandırması ve device state yönetimi için gerekli bilgileri içerir.
+End device lifecycle management is one of the core operations of The Things Stack. This skill contains the necessary information for OTAA/ABP device registration, session management, MAC settings configuration, and device state management.
 
 ## Key Concepts
 
-### Device Registration Modları
+### Device Registration Modes
 
-| Mod | Açıklama | Gerekli Keys |
-|-----|----------|--------------|
+| Mode | Description | Required Keys |
+|------|-------------|---------------|
 | OTAA | Over-The-Air Activation | AppKey (+ NwkKey for 1.1) |
 | ABP | Activation By Personalization | DevAddr, NwkSKey, AppSKey |
 
-### Device State Dağılımı
+### Device State Distribution
 
 ```
 EndDevice
@@ -23,7 +23,7 @@ EndDevice
 └── Application Server → Formatters, locations, integrations
 ```
 
-### Veri Yapıları
+### Data Structures
 
 **Session** (`api/ttn/lorawan/v3/end_device.proto:38`):
 ```protobuf
@@ -69,7 +69,7 @@ message SessionKeys {
 
 **Procedure**:
 
-1. **Identity Server'da oluştur**:
+1. **Create in Identity Server**:
 ```bash
 POST /applications/{app_id}/devices
 {
@@ -86,7 +86,7 @@ POST /applications/{app_id}/devices
 }
 ```
 
-2. **Join Server'da root keys ayarla**:
+2. **Set root keys in Join Server**:
 ```bash
 PUT /js/applications/{app_id}/devices/{device_id}
 {
@@ -102,7 +102,7 @@ PUT /js/applications/{app_id}/devices/{device_id}
 }
 ```
 
-3. **Network Server'da kaydet**:
+3. **Register in Network Server**:
 ```bash
 PUT /ns/applications/{app_id}/devices/{device_id}
 {
@@ -122,7 +122,7 @@ PUT /ns/applications/{app_id}/devices/{device_id}
 }
 ```
 
-4. **Application Server'da kaydet**:
+4. **Register in Application Server**:
 ```bash
 PUT /as/applications/{app_id}/devices/{device_id}
 {
@@ -141,9 +141,9 @@ PUT /as/applications/{app_id}/devices/{device_id}
 
 **Procedure**:
 
-1. **Identity Server'da oluştur** (OTAA ile aynı)
+1. **Create in Identity Server** (same as OTAA)
 
-2. **Network Server'da session ile kaydet**:
+2. **Register in Network Server with session**:
 ```bash
 PUT /ns/applications/{app_id}/devices/{device_id}
 {
@@ -172,7 +172,7 @@ PUT /ns/applications/{app_id}/devices/{device_id}
 }
 ```
 
-3. **Application Server'da AppSKey ile kaydet**:
+3. **Register in Application Server with AppSKey**:
 ```bash
 PUT /as/applications/{app_id}/devices/{device_id}
 {
@@ -189,7 +189,7 @@ PUT /as/applications/{app_id}/devices/{device_id}
 }
 ```
 
-### Task 3: MAC Settings Yapılandırma
+### Task 3: MAC Settings Configuration
 
 **Files**:
 - `api/ttn/lorawan/v3/end_device.proto:564` (MACSettings)
@@ -252,31 +252,31 @@ PUT /ns/applications/{app_id}/devices/{device_id}
 }
 ```
 
-### Task 4: Device Silme (Sıralı)
+### Task 4: Device Deletion (Sequential)
 
-**Procedure** (ters sırada silinmeli):
+**Procedure** (must delete in reverse order):
 
-1. **Application Server'dan sil**:
+1. **Delete from Application Server**:
 ```bash
 DELETE /as/applications/{app_id}/devices/{device_id}
 ```
 
-2. **Network Server'dan sil**:
+2. **Delete from Network Server**:
 ```bash
 DELETE /ns/applications/{app_id}/devices/{device_id}
 ```
 
-3. **Join Server'dan sil** (OTAA ise):
+3. **Delete from Join Server** (if OTAA):
 ```bash
 DELETE /js/applications/{app_id}/devices/{device_id}
 ```
 
-4. **Identity Server'dan sil**:
+4. **Delete from Identity Server**:
 ```bash
 DELETE /applications/{app_id}/devices/{device_id}
 ```
 
-### Task 5: Device State Sorgulama
+### Task 5: Device State Query
 
 **Files**:
 - `pkg/networkserver/redis/` (device state storage)
@@ -286,15 +286,15 @@ DELETE /applications/{app_id}/devices/{device_id}
 # Full device with session info
 GET /applications/{app_id}/devices/{device_id}?field_mask=name,session,mac_state,pending_session
 
-# Network Server'dan aktif session
+# Active session from Network Server
 GET /ns/applications/{app_id}/devices/{device_id}?field_mask=session,mac_state
 ```
 
-**Önemli Field Paths**:
-- `session` - Aktif session (DevAddr, keys, frame counters)
-- `pending_session` - Bekleyen OTAA session (join accept sonrası)
-- `mac_state` - MAC layer durumu (current parameters)
-- `mac_settings` - Yapılandırılmış MAC settings
+**Important Field Paths**:
+- `session` - Active session (DevAddr, keys, frame counters)
+- `pending_session` - Pending OTAA session (after join accept)
+- `mac_state` - MAC layer state (current parameters)
+- `mac_settings` - Configured MAC settings
 
 ## Code Patterns
 
@@ -325,9 +325,9 @@ ns:eui:{join-eui}:{dev-eui} → device UID
 ### Device Lookup Flow
 ```go
 // pkg/networkserver/grpc_gsns.go
-// 1. Uplink geldiğinde DevAddr ile device bulunur
-// 2. EUI ile join request routing
-// 3. UID ile direct lookup
+// 1. On uplink, device is found by DevAddr
+// 2. Join request routing by EUI
+// 3. Direct lookup by UID
 ```
 
 ## Configuration Reference
@@ -374,8 +374,8 @@ supports_class_c: false  # Class C (continuous RX)
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | Device Proto | `api/ttn/lorawan/v3/end_device.proto` |
 | Keys Proto | `api/ttn/lorawan/v3/keys.proto` |
 | Services Proto | `api/ttn/lorawan/v3/end_device_services.proto` |
@@ -388,28 +388,28 @@ supports_class_c: false  # Class C (continuous RX)
 
 ## Troubleshooting
 
-### Join Request Başarısız
-- JoinEUI ve DevEUI doğruluğunu kontrol et
-- AppKey'in Join Server'da kayıtlı olduğunu doğrula
-- Frequency plan'ın gateway ile uyumlu olduğunu kontrol et
-- `supports_join: true` olmalı
+### Join Request Failed
+- Verify JoinEUI and DevEUI correctness
+- Confirm AppKey is registered in Join Server
+- Check frequency plan is compatible with gateway
+- `supports_join: true` must be set
 
-### Session Kayboldu
-- ABP device'da session field'larının tüm component'larda kayıtlı olduğunu kontrol et
-- Frame counter'ların sıfırlanıp sıfırlanmadığını kontrol et (`resets_f_cnt`)
-- DevAddr collision olup olmadığını kontrol et
+### Session Lost
+- For ABP devices, check session fields are registered in all components
+- Check if frame counters have been reset (`resets_f_cnt`)
+- Check for DevAddr collision
 
 ### Frame Counter Mismatch
-- `resets_f_cnt: true` ise her power cycle'da counter sıfırlanır
-- 32-bit counter desteği: `supports_32_bit_f_cnt`
-- ABP'de counter'lar manuel resetlenebilir
+- If `resets_f_cnt: true`, counter resets on every power cycle
+- 32-bit counter support: `supports_32_bit_f_cnt`
+- ABP counters can be manually reset
 
-### MAC State Bozuk
-- Device'ı NS'den silip tekrar kaydet
-- OTAA device için rejoin tetikle
-- `mac_state` field mask ile durumu kontrol et
+### MAC State Corrupted
+- Delete and re-register device in NS
+- For OTAA devices, trigger rejoin
+- Check state with `mac_state` field mask
 
-### Downlink Queue Dolu
-- `session.queued_application_downlinks` kontrol et
-- Queue'yu temizle: `DownlinkQueueReplace` with empty list
-- Class A device'lar sadece uplink sonrası downlink alabilir
+### Downlink Queue Full
+- Check `session.queued_application_downlinks`
+- Clear queue: `DownlinkQueueReplace` with empty list
+- Class A devices can only receive downlinks after uplinks

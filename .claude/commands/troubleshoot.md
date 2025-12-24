@@ -1,126 +1,126 @@
-# /troubleshoot Komutu
+# /troubleshoot Command
 
-Sorun giderme rehberi ve diagnostik.
+Troubleshooting guide and diagnostics.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| gateway | Gateway bağlantı sorunları |
-| device | Device sorunları (join, uplink) |
-| join | Join failure analizi |
-| uplink | Uplink sorunları |
-| downlink | Downlink sorunları |
-| webhook | Webhook sorunları |
-| performance | Performans sorunları |
+| Parameter | Description |
+|-----------|-------------|
+| gateway | Gateway connection issues |
+| device | Device issues (join, uplink) |
+| join | Join failure analysis |
+| uplink | Uplink issues |
+| downlink | Downlink issues |
+| webhook | Webhook issues |
+| performance | Performance issues |
 
-## Genel Diagnostik
+## General Diagnostics
 
-Önce genel durum kontrolü:
+First run general status check:
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/scripts
 ./health-check.sh
 ```
 
-## Gateway Sorunları
+## Gateway Issues
 
-### Gateway bağlanamıyor
+### Gateway not connecting
 
-1. Port 1700 açık mı?
+1. Is port 1700 open?
 ```bash
 ss -ulnp | grep 1700
 nc -uvz localhost 1700
 ```
 
-2. Gateway Server logları:
+2. Gateway Server logs:
 ```bash
 docker compose logs stack 2>&1 | grep "gs:" | tail -50
 ```
 
-3. Firewall kontrolü:
+3. Firewall check:
 ```bash
 sudo ufw status
 sudo iptables -L -n | grep 1700
 ```
 
-4. Gateway EUI doğru mu?
+4. Is Gateway EUI correct?
 ```bash
-# Console'dan veya CLI ile kontrol
+# Check from Console or CLI
 ttn-lw-cli gateways get <gateway-id>
 ```
 
-### Gateway connected ama traffic yok
+### Gateway connected but no traffic
 
-1. Frequency plan uyumlu mu?
-2. Gateway location set mi?
-3. Antenna bağlı mı? (fiziksel)
+1. Is frequency plan compatible?
+2. Is gateway location set?
+3. Is antenna connected? (physical)
 
-## Join Sorunları
+## Join Issues
 
-### Join request görünmüyor
+### Join request not visible
 
-1. Gateway bağlı mı?
-2. Device frequency plan doğru mu?
-3. Device uplink gönderebiliyor mu?
+1. Is gateway connected?
+2. Is device frequency plan correct?
+3. Can device send uplink?
 
-### Join accept alınamıyor
+### Join accept not received
 
-1. AppKey doğru mu?
+1. Is AppKey correct?
 ```bash
-# Console'dan kontrol et
+# Check from Console
 ttn-lw-cli end-devices get <app-id> <dev-id> --root-keys
 ```
 
-2. DevNonce replay mı?
+2. DevNonce replay?
 ```bash
 docker compose logs stack 2>&1 | grep "Join-request" | grep <dev_eui>
 ```
 
-3. Join Server logları:
+3. Join Server logs:
 ```bash
 docker compose logs stack 2>&1 | grep "js:" | tail -50
 ```
 
-## Uplink Sorunları
+## Uplink Issues
 
-### Uplink görünmüyor
+### Uplink not visible
 
-1. Device session aktif mi?
-2. Frame counter reset mi oldu?
-3. MIC verification failure mı?
+1. Is device session active?
+2. Did frame counter reset?
+3. MIC verification failure?
 
 ```bash
 docker compose logs stack 2>&1 | grep <dev_eui> | tail -50
 ```
 
-### Uplink geliyor ama Application Server'a ulaşmıyor
+### Uplink received but not reaching Application Server
 
-1. Device routing doğru mu?
-2. Application Server logları:
+1. Is device routing correct?
+2. Application Server logs:
 ```bash
 docker compose logs stack 2>&1 | grep "as:" | tail -50
 ```
 
-## Downlink Sorunları
+## Downlink Issues
 
-### Downlink gönderilemiyor
+### Downlink not being sent
 
-1. Device Class A ise uplink sonrası mı?
-2. Gateway downlink destekliyor mu?
-3. Duty cycle limiti aşılmış mı?
+1. Class A device - is it after uplink?
+2. Does gateway support downlink?
+3. Duty cycle limit exceeded?
 
 ```bash
 docker compose logs stack 2>&1 | grep "Scheduling downlink" | tail -20
 ```
 
-## Webhook Sorunları
+## Webhook Issues
 
-### Webhook çağrılmıyor
+### Webhook not being called
 
-1. Webhook URL doğru mu?
-2. TLS sertifikası valid mi?
-3. Timeout mu oluyor?
+1. Is webhook URL correct?
+2. Is TLS certificate valid?
+3. Timeout occurring?
 
 ```bash
 docker compose logs stack 2>&1 | grep "webhook" | tail -50
@@ -128,19 +128,19 @@ docker compose logs stack 2>&1 | grep "webhook" | tail -50
 
 ### Webhook 4xx/5xx
 
-1. Endpoint erişilebilir mi?
+1. Is endpoint reachable?
 ```bash
 curl -v <webhook-url>
 ```
 
-2. Format doğru mu?
-3. Authentication header'ları doğru mu?
+2. Is format correct?
+3. Are authentication headers correct?
 
-## Performans Sorunları
+## Performance Issues
 
-### Yüksek latency
+### High latency
 
-1. Resource kullanımı:
+1. Resource usage:
 ```bash
 docker stats
 ```
@@ -157,44 +157,44 @@ docker compose exec redis redis-cli INFO memory
 
 ### High CPU/Memory
 
-1. Container limits kontrol:
+1. Check container limits:
 ```bash
 docker compose config | grep -A5 deploy
 ```
 
-2. Log volume çok mu?
-3. Event backlog var mı?
+2. Too much log volume?
+3. Event backlog?
 
-## Diagnostic Komutları Özeti
+## Diagnostic Commands Summary
 
 ```bash
-# Genel durum
+# General status
 ./health-check.sh
 
-# Container logları
+# Container logs
 docker compose logs -f stack
 
-# PostgreSQL bağlantıları
+# PostgreSQL connections
 docker compose exec postgres psql -U ttn -c "SELECT count(*) FROM pg_stat_activity;"
 
-# Redis durumu
+# Redis status
 docker compose exec redis redis-cli INFO
 
-# Network kontrol
+# Network check
 ss -tlnp | grep -E "1700|1885|1884"
 
-# Disk kullanımı
+# Disk usage
 df -h
 du -sh /var/lib/docker
 ```
 
-## İlgili Skill
+## Related Skill
 
-Detaylı troubleshooting için:
-- `@troubleshooting` - Kapsamlı sorun giderme rehberi
+For detailed troubleshooting:
+- `@troubleshooting` - Comprehensive troubleshooting guide
 
-## İlgili Komutlar
+## Related Commands
 
-- `/logs` - Log görüntüleme
-- `/status` - Sistem durumu
-- `/test` - Bağlantı testleri
+- `/logs` - Log viewing
+- `/status` - System status
+- `/test` - Connection tests

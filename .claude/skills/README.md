@@ -1,33 +1,33 @@
 # The Things Stack - Claude Code Skills
 
-Bu dizin, The Things Stack (TTS) projesi için Claude Code'un domain knowledge'ını içeren skill dosyalarını barındırır.
+This directory contains skill files that provide domain knowledge for Claude Code when working with The Things Stack (TTS) project.
 
-## Skills Listesi
+## Skills List
 
-| Skill | Açıklama | Kullanım Alanı |
-|-------|----------|----------------|
-| [api-usage](./api-usage/SKILL.md) | gRPC/REST API kullanımı | API entegrasyonu, client development |
-| [device-management](./device-management/SKILL.md) | End device lifecycle yönetimi | Device provisioning, OTAA/ABP |
-| [gateway-management](./gateway-management/SKILL.md) | Gateway yapılandırma | Gateway kurulum, protokoller |
-| [lorawan-protocol](./lorawan-protocol/SKILL.md) | LoRaWAN protokol implementasyonu | MAC commands, class operations |
-| [stack-internals](./stack-internals/SKILL.md) | Stack iç mimarisi | Component interaction, request flow |
-| [database-operations](./database-operations/SKILL.md) | Database yönetimi | PostgreSQL, Redis, migrations |
-| [performance-optimization](./performance-optimization/SKILL.md) | Performans tuning | Optimization, scaling |
-| [troubleshooting](./troubleshooting/SKILL.md) | Sorun giderme | Debug, log analysis |
+| Skill | Description | Usage Area |
+|-------|-------------|------------|
+| [api-usage](./api-usage/SKILL.md) | gRPC/REST API usage | API integration, client development |
+| [device-management](./device-management/SKILL.md) | End device lifecycle management | Device provisioning, OTAA/ABP |
+| [gateway-management](./gateway-management/SKILL.md) | Gateway configuration | Gateway setup, protocols |
+| [lorawan-protocol](./lorawan-protocol/SKILL.md) | LoRaWAN protocol implementation | MAC commands, class operations |
+| [stack-internals](./stack-internals/SKILL.md) | Stack internal architecture | Component interaction, request flow |
+| [database-operations](./database-operations/SKILL.md) | Database management | PostgreSQL, Redis, migrations |
+| [performance-optimization](./performance-optimization/SKILL.md) | Performance tuning | Optimization, scaling |
+| [troubleshooting](./troubleshooting/SKILL.md) | Troubleshooting | Debug, log analysis |
 
-## Proje Yapısı
+## Project Structure
 
 ```
 lorawan-stack/
-├── api/ttn/lorawan/v3/          # Proto tanımları (58 dosya)
+├── api/ttn/lorawan/v3/          # Proto definitions (58 files)
 ├── pkg/
-│   ├── networkserver/           # Network Server implementasyonu
+│   ├── networkserver/           # Network Server implementation
 │   │   ├── grpc_gsns.go         # GS-NS gRPC handler
-│   │   └── mac/                 # MAC command handlers (50+ dosya)
-│   ├── applicationserver/       # Application Server implementasyonu
+│   │   └── mac/                 # MAC command handlers (50+ files)
+│   ├── applicationserver/       # Application Server implementation
 │   │   ├── grpc.go              # NS-AS gRPC handler
 │   │   └── io/                  # Output integrations (mqtt, web, pubsub)
-│   ├── gatewayserver/           # Gateway Server implementasyonu
+│   ├── gatewayserver/           # Gateway Server implementation
 │   │   └── io/                  # Gateway protocols (udp, semtechws, mqtt)
 │   ├── identityserver/          # Identity Server (auth, registry)
 │   │   └── store/migrations/    # Database migrations
@@ -36,10 +36,10 @@ lorawan-stack/
 └── deploy/olivenet/             # Deployment configuration
 ```
 
-## Ana Bileşenler
+## Main Components
 
 ### Network Server (NS)
-- Uplink/downlink işleme: `pkg/networkserver/grpc_gsns.go:1493`
+- Uplink/downlink processing: `pkg/networkserver/grpc_gsns.go:1493`
 - MAC command handling: `pkg/networkserver/mac/`
 - Device state (Redis): `pkg/networkserver/redis/`
 
@@ -70,16 +70,14 @@ Device → Gateway → GatewayServer → NetworkServer → ApplicationServer →
                    JoinServer      IdentityServer
 ```
 
-## Kullanım
+## Usage
 
-Bu skills Claude Code tarafından otomatik olarak okunur ve projeyle çalışırken context sağlar. Her skill dosyası:
+These skills are automatically read by Claude Code and provide context when working with the project. Each skill file contains:
 
-1. **Overview**: Kapsamın kısa açıklaması
-2. **Key Concepts**: Temel kavramlar
-3. **Common Tasks**: Sık yapılan işlemler için adım adım rehberler
-4. **Code Patterns**: Projede kullanılan pattern örnekleri
-5. **Configuration Reference**: İlgili config parametreleri
-6. **File References**: Kritik dosya yolları
-7. **Troubleshooting**: Yaygın sorunlar ve çözümler
-
-içerir.
+1. **Overview**: Brief description of scope
+2. **Key Concepts**: Fundamental concepts
+3. **Common Tasks**: Step-by-step guides for common operations
+4. **Code Patterns**: Pattern examples used in the project
+5. **Configuration Reference**: Related config parameters
+6. **File References**: Critical file paths
+7. **Troubleshooting**: Common issues and solutions

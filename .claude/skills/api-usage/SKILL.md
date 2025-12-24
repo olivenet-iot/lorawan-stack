@@ -2,59 +2,59 @@
 
 ## Overview
 
-The Things Stack (TTS) API, gRPC tabanlı bir servis mimarisi kullanır ve grpc-gateway ile REST endpoint'leri otomatik olarak oluşturulur. Bu skill, API kullanımı, authentication, field mask'ler ve client development için gerekli bilgileri içerir.
+The Things Stack (TTS) API uses a gRPC-based service architecture and REST endpoints are automatically generated via grpc-gateway. This skill contains the necessary information for API usage, authentication, field masks, and client development.
 
 ## Key Concepts
 
-### API Mimarisi
-- **Proto Tanımları**: `api/ttn/lorawan/v3/` dizininde (54 .proto dosyası)
-- **gRPC Services**: Her component için ayrı servis tanımları
-- **REST Gateway**: `google.api.http` annotation'ları ile otomatik REST endpoint'ler
+### API Architecture
+- **Proto Definitions**: Located in `api/ttn/lorawan/v3/` directory (54 .proto files)
+- **gRPC Services**: Separate service definitions for each component
+- **REST Gateway**: Automatic REST endpoints via `google.api.http` annotations
 - **Go Package**: `go.thethings.network/lorawan-stack/v3/pkg/ttnpb`
 
-### Ana Servisler
+### Main Services
 
-| Servis | Proto Dosyası | Açıklama |
-|--------|---------------|----------|
-| EntityAccess | `identityserver.proto` | Auth bilgisi sorgulama |
+| Service | Proto File | Description |
+|---------|------------|-------------|
+| EntityAccess | `identityserver.proto` | Auth info query |
 | EndDeviceRegistry | `end_device_services.proto` | Device CRUD (Identity Server) |
 | NsEndDeviceRegistry | `networkserver.proto` | Device state (Network Server) |
 | AsEndDeviceRegistry | `applicationserver.proto` | Device (Application Server) |
 | JsEndDeviceRegistry | `joinserver.proto` | Device keys (Join Server) |
 | GtwGs | `gatewayserver.proto` | Gateway connection |
-| Ns | `networkserver.proto` | NS yönetimi |
-| As | `applicationserver.proto` | AS yönetimi |
+| Ns | `networkserver.proto` | NS management |
+| As | `applicationserver.proto` | AS management |
 
-### Authentication Yöntemleri
+### Authentication Methods
 
 ```
 AuthInfoResponse.access_method:
 ├── api_key        # API Key authentication
 ├── oauth_access_token  # OAuth2 access token
-├── user_session   # Session cookie (CSRF koruması gerektirir)
+├── user_session   # Session cookie (requires CSRF protection)
 └── gateway_token  # Gateway-specific token
 ```
 
 ## Common Tasks
 
-### Task 1: API Key ile Authentication
+### Task 1: API Key Authentication
 
 **Files**: `api/ttn/lorawan/v3/identityserver.proto`, `pkg/identityserver/`
 
 **Procedure**:
-1. API Key oluştur (Console veya CLI ile)
-2. gRPC metadata'ya ekle: `authorization: Bearer <API_KEY>`
-3. REST için header: `Authorization: Bearer <API_KEY>`
+1. Create API Key (via Console or CLI)
+2. Add to gRPC metadata: `authorization: Bearer <API_KEY>`
+3. For REST, use header: `Authorization: Bearer <API_KEY>`
 
 **Code Example** (grpcurl):
 ```bash
-# Auth info kontrolü
+# Auth info check
 grpcurl -H "authorization: Bearer NNSXS.XXXX..." \
   -d '{}' \
   localhost:8884 ttn.lorawan.v3.EntityAccess/AuthInfo
 ```
 
-### Task 2: Device Oluşturma (Full Registration)
+### Task 2: Device Creation (Full Registration)
 
 **Files**:
 - `api/ttn/lorawan/v3/end_device_services.proto:37` (EndDeviceRegistry)
@@ -63,14 +63,14 @@ grpcurl -H "authorization: Bearer NNSXS.XXXX..." \
 - `api/ttn/lorawan/v3/joinserver.proto` (JsEndDeviceRegistry)
 
 **Procedure**:
-Device registration 4 component'te yapılmalı (sıralı):
+Device registration must be done in 4 components (sequentially):
 
-1. **Identity Server**: Device ID ve metadata
+1. **Identity Server**: Device ID and metadata
 ```bash
 POST /applications/{app_id}/devices
 ```
 
-2. **Join Server** (OTAA için): Root keys
+2. **Join Server** (for OTAA): Root keys
 ```bash
 PUT /js/applications/{app_id}/devices/{device_id}
 ```
@@ -85,12 +85,12 @@ PUT /ns/applications/{app_id}/devices/{device_id}
 PUT /as/applications/{app_id}/devices/{device_id}
 ```
 
-### Task 3: Field Mask Kullanımı
+### Task 3: Field Mask Usage
 
-**Files**: Tüm `*Request` message'ları
+**Files**: All `*Request` messages
 
 **Procedure**:
-Field mask, hangi alanların döndürüleceğini veya güncelleneceğini belirtir.
+Field mask specifies which fields to return or update.
 
 **Get Request**:
 ```json
@@ -118,13 +118,13 @@ Field mask, hangi alanların döndürüleceğini veya güncelleneceğini belirti
 }
 ```
 
-**Yaygın Field Paths**:
+**Common Field Paths**:
 - `name`, `description`, `attributes`
-- `session` (aktif session bilgileri)
-- `mac_state` (MAC layer durumu)
-- `pending_session` (bekleyen OTAA session)
-- `root_keys` (AppKey, NwkKey - sadece JS)
-- `formatters` (payload formatters - sadece AS)
+- `session` (active session information)
+- `mac_state` (MAC layer state)
+- `pending_session` (pending OTAA session)
+- `root_keys` (AppKey, NwkKey - JS only)
+- `formatters` (payload formatters - AS only)
 
 ### Task 4: Batch Operations
 
@@ -144,7 +144,7 @@ DELETE /applications/{app_id}/devices/batch
 **Files**: `api/ttn/lorawan/v3/events.proto`
 
 **Procedure**:
-Server-Sent Events (SSE) veya gRPC stream:
+Server-Sent Events (SSE) or gRPC stream:
 
 ```bash
 # REST (SSE)
@@ -158,7 +158,7 @@ rpc Stream(StreamEventsRequest) returns (stream Event)
 
 ### Proto Message to JSON
 ```go
-// ttnpb paketinde
+// In ttnpb package
 import "go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
 
 device := &ttnpb.EndDevice{
@@ -239,8 +239,8 @@ is:
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | All Proto Files | `api/ttn/lorawan/v3/*.proto` |
 | Identity Server Proto | `api/ttn/lorawan/v3/identityserver.proto` |
 | Device Services Proto | `api/ttn/lorawan/v3/end_device_services.proto` |
@@ -257,26 +257,26 @@ is:
 ## Troubleshooting
 
 ### 401 Unauthorized
-- API key geçerliliğini kontrol et
-- Header formatı: `Authorization: Bearer NNSXS.xxx...`
-- API key'in gerekli rights'a sahip olduğunu doğrula
+- Check API key validity
+- Header format: `Authorization: Bearer NNSXS.xxx...`
+- Verify API key has required rights
 
 ### 403 Forbidden
-- API key'in entity üzerinde yetkisi yok
-- Collaborator eklenmesi gerekebilir
-- `rights` field'ını kontrol et
+- API key has no permission on entity
+- May need to add collaborator
+- Check `rights` field
 
 ### Field Mask Errors
-- Geçersiz path: Proto tanımındaki exact path kullan
-- Read-only field güncelleme: `created_at`, `updated_at` gibi alanlar güncelenemez
-- Nested path: `mac_settings.rx1_delay` gibi nested path'ler desteklenir
+- Invalid path: Use exact path from proto definition
+- Updating read-only field: Fields like `created_at`, `updated_at` cannot be updated
+- Nested path: Nested paths like `mac_settings.rx1_delay` are supported
 
 ### gRPC Connection Issues
-- TLS sertifika doğrulaması: `--insecure` kullanma, sertifika ekle
-- Port kontrolü: gRPC default 8884 (TLS), 1884 (plain)
-- Metadata sırası: `authorization` header küçük harfle
+- TLS certificate validation: Don't use `--insecure`, add certificate
+- Port check: gRPC default 8884 (TLS), 1884 (plain)
+- Metadata order: `authorization` header in lowercase
 
 ### Rate Limiting
-- HTTP 429 hatası: Rate limit aşıldı
-- Exponential backoff uygula
-- Batch operations kullan
+- HTTP 429 error: Rate limit exceeded
+- Apply exponential backoff
+- Use batch operations

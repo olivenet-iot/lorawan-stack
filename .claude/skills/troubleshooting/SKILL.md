@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Things Stack sorun giderme, çeşitli seviyelerde hata ayıklama gerektirir: gateway connectivity, device communication, integration failures ve system health. Bu skill, yaygın sorunlar, log analizi ve debug prosedürlerini kapsar.
+The Things Stack troubleshooting requires debugging at various levels: gateway connectivity, device communication, integration failures, and system health. This skill covers common issues, log analysis, and debug procedures.
 
 ## Key Concepts
 
@@ -38,8 +38,8 @@ The Things Stack sorun giderme, çeşitli seviyelerde hata ayıklama gerektirir:
 
 ### Event Names Reference
 
-| Component | Event Pattern | Açıklama |
-|-----------|--------------|----------|
+| Component | Event Pattern | Description |
+|-----------|--------------|-------------|
 | GS | `gs.up.receive` | Gateway uplink received |
 | GS | `gs.down.send` | Gateway downlink sent |
 | GS | `gs.status.receive` | Gateway status |
@@ -531,8 +531,8 @@ curl -N -H "Authorization: Bearer $KEY" \
 
 ## File References
 
-| Kategori | Dosya |
-|----------|-------|
+| Category | File |
+|----------|------|
 | Events Proto | `api/ttn/lorawan/v3/events.proto` |
 | Error Definitions | `pkg/errors/` |
 | NS Error Handling | `pkg/networkserver/mac/errors.go` |

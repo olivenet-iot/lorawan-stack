@@ -1,20 +1,20 @@
-# /backup Komutu
+# /backup Command
 
-Sistem backup'ı oluşturur.
+Creates system backup.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| --db-only | Sadece database backup |
-| --config-only | Sadece config backup |
-| --full | Tam backup (varsayılan) |
-| --retention DAYS | Saklama süresi (gün) |
-| --output DIR | Çıktı dizini |
+| Parameter | Description |
+|-----------|-------------|
+| --db-only | Database backup only |
+| --config-only | Config backup only |
+| --full | Full backup (default) |
+| --retention DAYS | Retention period (days) |
+| --output DIR | Output directory |
 
-## Prosedür
+## Procedure
 
-### Tam Backup
+### Full Backup
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/scripts
@@ -33,18 +33,18 @@ cd /home/ubuntu/lorawan-stack/deploy/olivenet/scripts
 ./backup.sh --config-only
 ```
 
-### Özel Retention
+### Custom Retention
 
 ```bash
-./backup.sh --retention 30  # 30 gün sakla
+./backup.sh --retention 30  # Keep for 30 days
 ```
 
-## Backup İçeriği
+## Backup Contents
 
-Tam backup şunları içerir:
+Full backup includes:
 
 1. **PostgreSQL Database**
-   - Tüm tablolar (pg_dump)
+   - All tables (pg_dump)
    - Users, organizations, applications, devices
    - API keys, sessions
 
@@ -57,11 +57,11 @@ Tam backup şunları içerir:
    - docker-compose.yml
    - ttn-lw-stack.yml
 
-4. **Blob Storage** (opsiyonel)
+4. **Blob Storage** (optional)
    - Profile pictures
    - Uploaded files
 
-## Backup Lokasyonu
+## Backup Location
 
 ```
 /var/backups/olivenet-tts/
@@ -74,16 +74,16 @@ Tam backup şunları içerir:
     └── backup.log
 ```
 
-## Otomatik Backup
+## Automated Backup
 
-Cron ile otomatik backup:
+Automated backup with cron:
 
 ```bash
-# Systemd timer kullanılıyor
+# Using systemd timer
 systemctl status olivenet-tts-backup.timer
 ```
 
-## Başarı Çıktısı
+## Success Output
 
 ```
 [2025-01-22 10:00:00] [INFO] Starting backup...
@@ -96,11 +96,11 @@ systemctl status olivenet-tts-backup.timer
 [2025-01-22 10:00:21] [INFO] Retention: 7 days, removed 2 old backups
 ```
 
-## İlgili Komutlar
+## Related Commands
 
-- `/restore` - Backup'tan geri yükle
-- `/status` - Son backup bilgisi
+- `/restore` - Restore from backup
+- `/status` - Last backup info
 
-## İlgili Skill
+## Related Skill
 
-- `@database-operations` - Detaylı backup prosedürleri
+- `@database-operations` - Detailed backup procedures

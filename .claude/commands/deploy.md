@@ -1,84 +1,84 @@
-# /deploy Komutu
+# /deploy Command
 
-TTS stack'i deploy eder veya günceller.
+Deploys or updates the TTS stack.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| --check | Sadece preflight check yap |
-| --dry-run | Ne yapılacağını göster, yapma |
-| --force | Mevcut .env'i overwrite et |
-| --skip-oauth | OAuth setup'ı atla (tekrar çalıştırma) |
-| --no-backup | Güncelleme öncesi backup alma |
+| Parameter | Description |
+|-----------|-------------|
+| --check | Only run preflight check |
+| --dry-run | Show what would be done, don't execute |
+| --force | Overwrite existing .env |
+| --skip-oauth | Skip OAuth setup (for re-runs) |
+| --no-backup | Don't create backup before update |
 
-## Prosedür
+## Procedure
 
-### Otomatik Deployment (Önerilen)
+### Automated Deployment (Recommended)
 
-deploy.sh scripti tüm adımları otomatik yapar:
+The deploy.sh script handles all steps automatically:
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet
 ./scripts/deploy.sh
 ```
 
-**Script şunları yapar:**
-1. Kullanıcıdan domain ve email ister
-2. TLS seçimi (Let's Encrypt / Self-signed / None)
-3. Tüm secret'ları otomatik generate eder
-4. .env dosyası oluşturur
-5. ACME dizinini oluşturur (doğru izinlerle)
-6. Database'leri başlatır
-7. Migration yapar
-8. Admin user ve OAuth client'ları oluşturur
-9. OAuth grants'ları düzeltir (kritik!)
-10. Stack'i başlatır
-11. Admin credentials'ları gösterir
+**The script does the following:**
+1. Prompts for domain and email
+2. TLS selection (Let's Encrypt / Self-signed / None)
+3. Auto-generates all secrets
+4. Creates .env file
+5. Creates ACME directory (with correct permissions)
+6. Starts databases
+7. Runs migration
+8. Creates admin user and OAuth clients
+9. Fixes OAuth grants (critical!)
+10. Starts the stack
+11. Displays admin credentials
 
 ### Dry Run
 
-Değişiklik yapmadan ne olacağını görmek için:
+To see what would happen without making changes:
 
 ```bash
 ./scripts/deploy.sh --dry-run
 ```
 
-### Tekrar Deployment
+### Re-deployment
 
-Mevcut deployment'ı yeniden başlatmak için:
+To restart existing deployment:
 
 ```bash
 ./scripts/deploy.sh --skip-oauth --force
 ```
 
-### Manuel Deployment
+### Manual Deployment
 
-Eğer manuel yapmak isterseniz:
+If you prefer manual deployment:
 
 1. **Preflight Check**
 ```bash
 ./scripts/preflight-check.sh
 ```
 
-2. **Environment Hazırlığı**
+2. **Environment Setup**
 ```bash
 cp .env.example .env
-nano .env  # Değerleri doldurun
+nano .env  # Fill in values
 
-# Secret'lar için:
+# For secrets:
 openssl rand -hex 32  # CONSOLE_OAUTH_CLIENT_SECRET
 openssl rand -hex 16  # BLOCK_KEY
 openssl rand -hex 32  # HASH_KEY
 ```
 
-3. **ACME Dizini**
+3. **ACME Directory**
 ```bash
 mkdir -p acme
 sudo chown 886:886 acme
 ```
 
-4. **Database Başlat**
+4. **Start Database**
 ```bash
 docker compose up -d postgres redis
 sleep 15
@@ -112,42 +112,42 @@ docker compose run --rm stack is-db create-oauth-client \
   --logout-redirect-uri "https://yourdomain.com/console"
 ```
 
-8. **OAuth Grants Fix (KRİTİK!)**
+8. **OAuth Grants Fix (CRITICAL!)**
 ```bash
 docker compose exec -T postgres psql -U ttn -d ttn_lorawan -c \
   "UPDATE clients SET grants = '{0,2}', skip_authorization = true, endorsed = true WHERE client_id = 'console';"
 ```
 
-9. **Stack Başlat**
+9. **Start Stack**
 ```bash
 docker compose up -d stack
 ```
 
-## Güncelleme
+## Update
 
 ```bash
-# Backup al
+# Create backup
 ./scripts/backup.sh
 
-# Image güncelle
+# Update image
 docker compose pull
 docker compose up -d
 
-# Migration (gerekirse)
+# Migration (if needed)
 docker compose run --rm stack is-db migrate
 ```
 
-## Başarı Durumu
+## Success Status
 
 ```
-╔════════════════════════════════════════════════════════════════╗
-║                   DEPLOYMENT COMPLETE                         ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                   DEPLOYMENT COMPLETE                          |
++================================================================+
 
 Console:  https://tts.olivenet.io/console
 
 Admin Credentials
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+================================================================
   Username: admin
   Email:    admin@olivenet.io
   Password: ************
@@ -155,31 +155,31 @@ Admin Credentials
 IMPORTANT: Change the admin password immediately after first login!
 ```
 
-## Hata Durumları
+## Error States
 
-| Hata | Çözüm |
-|------|-------|
-| Port in use | `ss -tlnp \| grep <port>` ile process'i bul |
+| Error | Solution |
+|-------|----------|
+| Port in use | Find process with `ss -tlnp \| grep <port>` |
 | Docker not running | `systemctl start docker` |
-| ACME failed | DNS kayıtları doğru mu? Port 80 açık mı? |
-| OAuth error | grants fix SQL komutunu çalıştır |
-| Migration failed | Logları göster: `docker compose logs stack` |
+| ACME failed | Are DNS records correct? Is port 80 open? |
+| OAuth error | Run grants fix SQL command |
+| Migration failed | Check logs: `docker compose logs stack` |
 
-## Kritik Notlar
+## Critical Notes
 
-⚠️ **OAuth Grants**: Console login için grants fix SQL komutu kritik!
+⚠️ **OAuth Grants**: The grants fix SQL command is critical for Console login!
 ```sql
 UPDATE clients SET grants = '{0,2}', skip_authorization = true, endorsed = true WHERE client_id = 'console';
 ```
 
-⚠️ **ACME Permissions**: ACME dizini 886:886 olmalı (TTS container user)
+⚠️ **ACME Permissions**: ACME directory must be owned by 886:886 (TTS container user)
 
-⚠️ **Config Template**: Değişiklik yapmak için:
-- `config/ttn-lw-stack.yml.template` - Template dosyası
-- `config/ttn-lw-stack.yml` - Aktif config
+⚠️ **Config Template**: To make changes:
+- `config/ttn-lw-stack.yml.template` - Template file
+- `config/ttn-lw-stack.yml` - Active config
 
-## İlgili Komutlar
+## Related Commands
 
-- `/status` - Deployment durumunu kontrol et
-- `/backup` - Backup al
-- `/troubleshoot` - Sorun giderme
+- `/status` - Check deployment status
+- `/backup` - Create backup
+- `/troubleshoot` - Troubleshooting

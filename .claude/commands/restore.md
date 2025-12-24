@@ -1,60 +1,60 @@
-# /restore Komutu
+# /restore Command
 
-Backup'tan sistem geri yüklemesi yapar.
+Restores system from backup.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| --latest | En son backup'ı kullan |
-| --file PATH | Belirli backup dosyası |
-| --dry-run | Ne yapılacağını göster, yapma |
-| --db-only | Sadece database restore |
-| --config-only | Sadece config restore |
-| --force | Onay istemeden restore |
+| Parameter | Description |
+|-----------|-------------|
+| --latest | Use latest backup |
+| --file PATH | Specific backup file |
+| --dry-run | Show what would be done, don't execute |
+| --db-only | Database restore only |
+| --config-only | Config restore only |
+| --force | Restore without confirmation |
 
-## Prosedür
+## Procedure
 
-### Son Backup'tan Restore
+### Restore from Latest Backup
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/scripts
-./restore.sh --latest --dry-run  # Önce kontrol et
-./restore.sh --latest            # Gerçek restore
+./restore.sh --latest --dry-run  # Check first
+./restore.sh --latest            # Actual restore
 ```
 
-### Belirli Backup'tan Restore
+### Restore from Specific Backup
 
 ```bash
-# Mevcut backup'ları listele
+# List available backups
 ls -la /var/backups/olivenet-tts/daily/
 
-# Belirli backup'ı restore et
+# Restore specific backup
 ./restore.sh --file /var/backups/olivenet-tts/daily/backup-20250120-100000.tar.gz
 ```
 
-## Restore Süreci
+## Restore Process
 
 1. **Pre-restore Safety Backup**
-   - Mevcut durum yedeklenir
-   - Rollback mümkün
+   - Current state is backed up
+   - Rollback possible
 
-2. **Stack Durdurma**
+2. **Stop Stack**
 ```bash
 docker compose down
 ```
 
 3. **Database Restore**
-   - PostgreSQL dump yükleme
-   - Foreign key kontrolleri
+   - PostgreSQL dump loading
+   - Foreign key checks
 
 4. **Redis Restore**
-   - RDB file yükleme
+   - RDB file loading
 
 5. **Config Restore**
-   - .env, YAML dosyaları
+   - .env, YAML files
 
-6. **Stack Başlatma**
+6. **Start Stack**
 ```bash
 docker compose up -d
 ```
@@ -64,7 +64,7 @@ docker compose up -d
 ./health-check.sh
 ```
 
-## Dry-Run Çıktısı
+## Dry-Run Output
 
 ```
 [DRY-RUN] Restore from: backup-20250120-100000.tar.gz
@@ -83,31 +83,31 @@ Estimated time: 2-5 minutes
 Run without --dry-run to execute.
 ```
 
-## Uyarılar
+## Warnings
 
-⚠️ **DİKKAT:**
-- Restore işlemi mevcut veriyi siler
-- Production'da dikkatli olun
-- Önce `--dry-run` ile test edin
+⚠️ **CAUTION:**
+- Restore operation deletes existing data
+- Be careful in production
+- Test with `--dry-run` first
 
-## Hata Durumları
+## Error States
 
-| Hata | Çözüm |
-|------|-------|
-| Backup file not found | Path'i kontrol et |
-| Permission denied | Root olarak çalıştır |
-| Database restore failed | Backup bütünlüğünü kontrol et |
-| Stack won't start | Logları kontrol et, rollback yap |
+| Error | Solution |
+|-------|----------|
+| Backup file not found | Check path |
+| Permission denied | Run as root |
+| Database restore failed | Check backup integrity |
+| Stack won't start | Check logs, rollback |
 
 ## Rollback
 
-Restore başarısız olursa:
+If restore fails:
 
 ```bash
 ./restore.sh --file /var/backups/olivenet-tts/pre-restore-safety.tar.gz
 ```
 
-## İlgili Komutlar
+## Related Commands
 
-- `/backup` - Backup oluştur
-- `/status` - Restore sonrası durum kontrolü
+- `/backup` - Create backup
+- `/status` - Status check after restore

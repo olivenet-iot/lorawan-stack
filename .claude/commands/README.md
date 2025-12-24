@@ -1,73 +1,73 @@
 # Claude Code Custom Commands - Olivenet TTS
 
-Bu dizin, TTS yönetimi için özel Claude Code komutlarını içerir.
+This directory contains custom Claude Code commands for TTS management.
 
-## Kullanım
+## Usage
 
-Komutlar "/" prefix'i ile çağrılır:
+Commands are invoked with the "/" prefix:
 
 ```
-/deploy          - TTS'i deploy et
-/status          - Sistem durumunu göster
-/test            - Testleri çalıştır
-/backup          - Backup al
-/restore         - Backup'tan restore et
-/logs            - Logları göster
-/troubleshoot    - Sorun giderme
-/device          - Device yönetimi
-/gateway         - Gateway yönetimi
-/simulate        - Simulator çalıştır
+/deploy          - Deploy TTS
+/status          - Show system status
+/test            - Run tests
+/backup          - Create backup
+/restore         - Restore from backup
+/logs            - Show logs
+/troubleshoot    - Troubleshooting
+/device          - Device management
+/gateway         - Gateway management
+/simulate        - Run simulator
 ```
 
-## Komut Detayları
+## Command Details
 
-Her komut alt parametreler alabilir:
+Each command can accept sub-parameters:
 
 ```bash
-/deploy --check      # Sadece preflight check
-/deploy --dry-run    # Ne yapacağını göster, yapma
-/status --json       # JSON formatında
-/test gateway        # Sadece gateway testi
-/logs ns --tail 100  # Network Server son 100 log
+/deploy --check      # Only run preflight check
+/deploy --dry-run    # Show what would be done, don't execute
+/status --json       # JSON format output
+/test gateway        # Gateway test only
+/logs ns --tail 100  # Network Server last 100 logs
 ```
 
-## Komut Listesi
+## Command List
 
-| Komut | Dosya | Açıklama |
-|-------|-------|----------|
-| /deploy | deploy.md | Stack deployment ve güncelleme |
-| /status | status.md | Sistem durumu ve health check |
-| /test | test.md | Testleri çalıştır |
-| /backup | backup.md | Backup oluştur |
-| /restore | restore.md | Backup'tan geri yükle |
-| /logs | logs.md | Log görüntüleme |
-| /troubleshoot | troubleshoot.md | Sorun giderme |
-| /device | device.md | Device yönetimi |
-| /gateway | gateway.md | Gateway yönetimi |
-| /simulate | simulate.md | Simulator çalıştır |
+| Command | File | Description |
+|---------|------|-------------|
+| /deploy | deploy.md | Stack deployment and updates |
+| /status | status.md | System status and health check |
+| /test | test.md | Run tests |
+| /backup | backup.md | Create backup |
+| /restore | restore.md | Restore from backup |
+| /logs | logs.md | Log viewing |
+| /troubleshoot | troubleshoot.md | Troubleshooting |
+| /device | device.md | Device management |
+| /gateway | gateway.md | Gateway management |
+| /simulate | simulate.md | Run simulator |
 
-## İlgili Skill'ler
+## Related Skills
 
-Bu komutlar aşağıdaki skill'lerle entegredir:
+These commands are integrated with the following skills:
 
-- `@troubleshooting` - Sorun giderme rehberi
-- `@device-management` - Device yönetim prosedürleri
-- `@gateway-management` - Gateway yönetim prosedürleri
-- `@database-operations` - Backup/restore işlemleri
+- `@troubleshooting` - Troubleshooting guide
+- `@device-management` - Device management procedures
+- `@gateway-management` - Gateway management procedures
+- `@database-operations` - Backup/restore operations
 
-## Dosya Dizini
+## Directory Structure
 
 ```
 .claude/commands/
-├── README.md           # Bu dosya
-├── deploy.md           # /deploy komutu
-├── status.md           # /status komutu
-├── test.md             # /test komutu
-├── backup.md           # /backup komutu
-├── restore.md          # /restore komutu
-├── logs.md             # /logs komutu
-├── troubleshoot.md     # /troubleshoot komutu
-├── device.md           # /device komutu
-├── gateway.md          # /gateway komutu
-└── simulate.md         # /simulate komutu
+├── README.md           # This file
+├── deploy.md           # /deploy command
+├── status.md           # /status command
+├── test.md             # /test command
+├── backup.md           # /backup command
+├── restore.md          # /restore command
+├── logs.md             # /logs command
+├── troubleshoot.md     # /troubleshoot command
+├── device.md           # /device command
+├── gateway.md          # /gateway command
+└── simulate.md         # /simulate command
 ```

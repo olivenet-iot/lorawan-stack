@@ -1,101 +1,101 @@
-# /logs Komutu
+# /logs Command
 
-Log görüntüleme ve analizi.
+Log viewing and analysis.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| stack | TTS stack logları |
-| postgres | PostgreSQL logları |
-| redis | Redis logları |
-| all | Tüm loglar |
-| --tail N | Son N satır |
-| --since TIME | Belirli zamandan itibaren |
-| --follow | Canlı takip |
-| --filter TEXT | Filtrele |
+| Parameter | Description |
+|-----------|-------------|
+| stack | TTS stack logs |
+| postgres | PostgreSQL logs |
+| redis | Redis logs |
+| all | All logs |
+| --tail N | Last N lines |
+| --since TIME | From specific time |
+| --follow | Live follow |
+| --filter TEXT | Filter text |
 
-## Prosedür
+## Procedure
 
-### Stack Logları
+### Stack Logs
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet
 docker compose logs stack --tail 100
 ```
 
-Canlı takip:
+Live follow:
 ```bash
 docker compose logs -f stack
 ```
 
-### Component Filtreleme
+### Component Filtering
 
 ```bash
-# Gateway Server logları
+# Gateway Server logs
 docker compose logs stack 2>&1 | grep "gs:"
 
-# Network Server logları
+# Network Server logs
 docker compose logs stack 2>&1 | grep "ns:"
 
-# Join Server logları
+# Join Server logs
 docker compose logs stack 2>&1 | grep "js:"
 
-# Application Server logları
+# Application Server logs
 docker compose logs stack 2>&1 | grep "as:"
 
-# Identity Server logları
+# Identity Server logs
 docker compose logs stack 2>&1 | grep "is:"
 ```
 
-### Device/Gateway Filtreleme
+### Device/Gateway Filtering
 
 ```bash
-# Belirli device
+# Specific device
 docker compose logs stack 2>&1 | grep "dev_eui=70B3D57ED0000001"
 
-# Belirli gateway
+# Specific gateway
 docker compose logs stack 2>&1 | grep "gateway_eui=AA555A0000000001"
 
-# Belirli application
+# Specific application
 docker compose logs stack 2>&1 | grep "application_id=my-app"
 ```
 
-### Error Filtreleme
+### Error Filtering
 
 ```bash
-# Sadece error'lar
+# Errors only
 docker compose logs stack 2>&1 | grep -i error
 
-# Error ve warning
+# Errors and warnings
 docker compose logs stack 2>&1 | grep -iE "error|warn"
 ```
 
-### Zaman Filtreleme
+### Time Filtering
 
 ```bash
-# Son 1 saat
+# Last 1 hour
 docker compose logs stack --since 1h
 
-# Belirli tarihten
+# From specific time
 docker compose logs stack --since 2025-01-22T10:00:00
 ```
 
-### PostgreSQL Logları
+### PostgreSQL Logs
 
 ```bash
 docker compose logs postgres --tail 50
 ```
 
-### Redis Logları
+### Redis Logs
 
 ```bash
 docker compose logs redis --tail 50
 ```
 
-## Log Formatı
+## Log Format
 
-TTS JSON formatında log üretir:
+TTS produces JSON format logs:
 
 ```json
 {
@@ -108,21 +108,21 @@ TTS JSON formatında log üretir:
 }
 ```
 
-## Log Analizi
+## Log Analysis
 
-### Uplink sayısı (son 1 saat)
+### Uplink count (last 1 hour)
 
 ```bash
 docker compose logs stack --since 1h 2>&1 | grep "Received uplink" | wc -l
 ```
 
-### Join request sayısı
+### Join request count
 
 ```bash
 docker compose logs stack --since 1h 2>&1 | grep "Join-request" | wc -l
 ```
 
-### En çok hata veren device
+### Devices with most errors
 
 ```bash
 docker compose logs stack 2>&1 | grep -i error | grep -oP 'dev_eui=\K[A-F0-9]+' | sort | uniq -c | sort -rn | head
@@ -130,7 +130,7 @@ docker compose logs stack 2>&1 | grep -i error | grep -oP 'dev_eui=\K[A-F0-9]+' 
 
 ## Log Rotation
 
-Loglar Docker tarafından yönetilir:
+Logs are managed by Docker:
 
 ```yaml
 # docker-compose.yml
@@ -143,11 +143,11 @@ services:
         max-file: "3"
 ```
 
-## İlgili Komutlar
+## Related Commands
 
-- `/troubleshoot` - Log analizi ile sorun giderme
-- `/status` - Sistem durumu
+- `/troubleshoot` - Log analysis for troubleshooting
+- `/status` - System status
 
-## İlgili Skill
+## Related Skill
 
-- `@troubleshooting` - Log pattern'leri ve analiz
+- `@troubleshooting` - Log patterns and analysis

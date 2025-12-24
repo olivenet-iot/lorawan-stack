@@ -1,32 +1,32 @@
-# /device Komutu
+# /device Command
 
-End device yönetimi.
+End device management.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
-| list | Device'ları listele |
-| create | Yeni device oluştur |
-| get | Device detayları |
-| delete | Device sil |
+| Parameter | Description |
+|-----------|-------------|
+| list | List devices |
+| create | Create new device |
+| get | Device details |
+| delete | Delete device |
 | reset | Frame counter reset |
-| keys | Root key'leri göster |
+| keys | Show root keys |
 
-## Prosedür
+## Procedure
 
-### Device Listele
+### List Devices
 
 ```bash
 ttn-lw-cli end-devices list <app-id>
 ```
 
-JSON formatı:
+JSON format:
 ```bash
 ttn-lw-cli end-devices list <app-id> --output-format json
 ```
 
-### Device Oluştur (OTAA)
+### Create Device (OTAA)
 
 ```bash
 ttn-lw-cli end-devices create <app-id> <device-id> \
@@ -38,9 +38,9 @@ ttn-lw-cli end-devices create <app-id> <device-id> \
   --frequency-plan-id EU_863_870
 ```
 
-Key generation ile:
+With key generation:
 ```bash
-# Random key generate et
+# Generate random key
 APP_KEY=$(openssl rand -hex 16 | tr '[:lower:]' '[:upper:]')
 echo "Generated AppKey: $APP_KEY"
 
@@ -53,7 +53,7 @@ ttn-lw-cli end-devices create <app-id> <device-id> \
   --frequency-plan-id EU_863_870
 ```
 
-### Device Oluştur (ABP)
+### Create Device (ABP)
 
 ```bash
 ttn-lw-cli end-devices create <app-id> <device-id> \
@@ -66,20 +66,20 @@ ttn-lw-cli end-devices create <app-id> <device-id> \
   --supports-join false
 ```
 
-### Device Detayları
+### Device Details
 
 ```bash
 ttn-lw-cli end-devices get <app-id> <device-id>
 ```
 
-Session bilgisi:
+Session info:
 ```bash
 ttn-lw-cli end-devices get <app-id> <device-id> \
   --session \
   --output-format json
 ```
 
-### Root Keys Göster
+### Show Root Keys
 
 ```bash
 ttn-lw-cli end-devices get <app-id> <device-id> --root-keys
@@ -93,13 +93,13 @@ ttn-lw-cli end-devices set <app-id> <device-id> \
   --session.last-n-f-cnt-down 0
 ```
 
-### Device Sil
+### Delete Device
 
 ```bash
 ttn-lw-cli end-devices delete <app-id> <device-id>
 ```
 
-### MAC Settings Güncelle
+### Update MAC Settings
 
 ```bash
 ttn-lw-cli end-devices set <app-id> <device-id> \
@@ -117,24 +117,24 @@ ttn-lw-cli events subscribe \
 
 ## Bulk Import
 
-CSV'den import:
+Import from CSV:
 
 ```bash
-# CSV formatı:
+# CSV format:
 # dev_eui,app_eui,app_key,name
 # 70B3D57ED0000001,0000000000000000,00112233...,Device 1
 
 ttn-lw-cli end-devices create-from-csv <app-id> devices.csv
 ```
 
-## Örnek Çıktılar
+## Example Outputs
 
 ### Device List
 
 ```
 ID                  Name            DevEUI              Last Seen
-device-001          Enerji Sayaç 1  70B3D57ED0000001    5 minutes ago
-device-002          Enerji Sayaç 2  70B3D57ED0000002    1 hour ago
+device-001          Energy Meter 1  70B3D57ED0000001    5 minutes ago
+device-002          Energy Meter 2  70B3D57ED0000002    1 hour ago
 ```
 
 ### Device Details
@@ -154,11 +154,11 @@ session:
   last_f_cnt_up: 1234
 ```
 
-## İlgili Skill
+## Related Skill
 
-- `@device-management` - Detaylı device yönetimi
+- `@device-management` - Detailed device management
 
-## İlgili Komutlar
+## Related Commands
 
-- `/gateway` - Gateway yönetimi
-- `/simulate` - Device simülasyonu
+- `/gateway` - Gateway management
+- `/simulate` - Device simulation

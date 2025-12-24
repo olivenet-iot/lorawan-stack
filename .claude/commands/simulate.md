@@ -1,72 +1,72 @@
-# /simulate Komutu
+# /simulate Command
 
-LoRaWAN simulator'ü çalıştırır.
+Runs LoRaWAN simulator.
 
-## Parametreler
+## Parameters
 
-| Parametre | Açıklama |
-|-----------|----------|
+| Parameter | Description |
+|-----------|-------------|
 | gateway | Gateway simulator |
 | device | Device simulator |
 | traffic | Traffic generator |
 | join | Join tester |
-| --scenario FILE | Scenario dosyası |
-| --devices N | Device sayısı |
-| --duration S | Süre (saniye) |
+| --scenario FILE | Scenario file |
+| --devices N | Number of devices |
+| --duration S | Duration (seconds) |
 
-## Kurulum
+## Setup
 
-Simulator'ü ilk kez kullanmadan önce:
+Before using the simulator for the first time:
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/simulator
 
-# Virtual environment oluştur
+# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# Bağımlılıkları yükle
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Prosedür
+## Procedure
 
 ### /simulate gateway
 
-Gateway bağlantı simülasyonu:
+Gateway connection simulation:
 
 ```bash
 cd /home/ubuntu/lorawan-stack/deploy/olivenet/simulator
 source venv/bin/activate
 
-# Bağlantı testi
+# Connection test
 python gateway_simulator.py --test-only
 
-# Interactive mod
+# Interactive mode
 python gateway_simulator.py --interactive
 
-# Özel EUI ile
+# With custom EUI
 python gateway_simulator.py --eui AA555A0000000099
 ```
 
 ### /simulate device
 
-Device simülasyonu:
+Device simulation:
 
 ```bash
-# Tek device OTAA join
+# Single device OTAA join
 python device_simulator.py \
   --dev-eui 70B3D57ED0000001 \
   --app-key 00112233445566778899AABBCCDDEEFF \
   --uplinks 5
 
-# Scenario dosyası ile
+# With scenario file
 python device_simulator.py --scenario scenarios/single_device.yml
 ```
 
 ### /simulate join
 
-Detaylı join analizi:
+Detailed join analysis:
 
 ```bash
 python join_tester.py \
@@ -74,7 +74,7 @@ python join_tester.py \
   --app-key 00112233445566778899AABBCCDDEEFF
 ```
 
-Çıktı:
+Output:
 ```
 OTAA Join Test - DevEUI: 70B3D57ED0000001
 ============================================================
@@ -106,23 +106,23 @@ Step 5: Deriving Session Keys
 
 ### /simulate traffic
 
-Yük testi:
+Load testing:
 
 ```bash
-# 100 device, 10 uplink/sec, 5 dakika
+# 100 devices, 10 uplinks/sec, 5 minutes
 python traffic_generator.py \
   --devices 100 \
   --rate 10 \
   --duration 300
 
-# Scenario dosyası ile
+# With scenario file
 python traffic_generator.py --scenario scenarios/stress_test.yml
 
 # 5000 device stress test
 python traffic_generator.py --scenario scenarios/stress_test.yml
 ```
 
-Çıktı:
+Output:
 ```
 Traffic Generator - 100 devices, 10 uplinks/sec
 ============================================================
@@ -142,36 +142,36 @@ Uplinks/sec:          9.8
 Errors:               2
 ```
 
-## Mevcut Senaryolar
+## Available Scenarios
 
-| Senaryo | Açıklama | Kullanım |
-|---------|----------|----------|
-| `single_device.yml` | Tek device join + uplink | Temel test |
-| `multi_device.yml` | 10 device paralel | Çoklu device |
-| `join_storm.yml` | 100 device aynı anda | Join stress |
-| `sustained_traffic.yml` | 50 device, 5 dk | Sürdürülebilirlik |
-| `stress_test.yml` | 5000 device, 10 dk | Production yük |
+| Scenario | Description | Usage |
+|----------|-------------|-------|
+| `single_device.yml` | Single device join + uplink | Basic test |
+| `multi_device.yml` | 10 devices parallel | Multiple devices |
+| `join_storm.yml` | 100 devices simultaneous | Join stress |
+| `sustained_traffic.yml` | 50 devices, 5 min | Sustainability |
+| `stress_test.yml` | 5000 devices, 10 min | Production load |
 
-## Önemli Notlar
+## Important Notes
 
-⚠️ **DİKKAT:**
+⚠️ **CAUTION:**
 
-1. **Simulator stack'e bağlanır**
-   - Stack çalışıyor olmalı
-   - Port 1700/UDP açık olmalı
+1. **Simulator connects to stack**
+   - Stack must be running
+   - Port 1700/UDP must be open
 
-2. **Test device'lar TTS'de kayıtlı olmalı**
-   - Simulator otomatik kayıt yapmaz
-   - Console'dan veya CLI ile oluşturun
+2. **Test devices must be registered in TTS**
+   - Simulator doesn't auto-register
+   - Create via Console or CLI
 
-3. **AppKey eşleşmeli**
-   - Simulator'deki AppKey = TTS'deki AppKey
+3. **AppKey must match**
+   - Simulator AppKey = TTS AppKey
 
-4. **Config dosyası**
-   - `config.yml` dosyasını düzenleyin
-   - Veya `config.local.yml` oluşturun
+4. **Config file**
+   - Edit `config.yml`
+   - Or create `config.local.yml`
 
-## Config Örneği
+## Config Example
 
 ```yaml
 # config.yml
@@ -187,9 +187,9 @@ device:
   join_eui: "0000000000000000"
 ```
 
-## Sonuç Dosyaları
+## Result Files
 
-Sonuçlar `results/` dizininde saklanır:
+Results are stored in `results/` directory:
 
 ```
 results/
@@ -198,12 +198,12 @@ results/
 └── .gitkeep
 ```
 
-## İlgili Dokümantasyon
+## Related Documentation
 
-- `deploy/olivenet/simulator/README.md` - Detaylı simulator rehberi
+- `deploy/olivenet/simulator/README.md` - Detailed simulator guide
 
-## İlgili Komutlar
+## Related Commands
 
-- `/test` - Temel testler
-- `/device` - Device yönetimi (kayıt için)
-- `/gateway` - Gateway yönetimi
+- `/test` - Basic tests
+- `/device` - Device management (for registration)
+- `/gateway` - Gateway management
