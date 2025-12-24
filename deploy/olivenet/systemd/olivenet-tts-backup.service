@@ -27,16 +27,16 @@ User=root
 Group=root
 
 # Environment
-Environment=DEPLOY_DIR=/opt/olivenet-tts
+Environment=DEPLOY_DIR=/opt/lorawan-stack
 Environment=BACKUP_DIR=/var/backups/olivenet-tts
 Environment=LOG_DIR=/var/log/olivenet-tts
 Environment=RETENTION_DAYS=7
 
 # Working directory
-WorkingDirectory=/opt/olivenet-tts/deploy/olivenet/scripts
+WorkingDirectory=/opt/lorawan-stack/deploy/olivenet/scripts
 
 # Backup command
-ExecStart=/opt/olivenet-tts/deploy/olivenet/scripts/backup-cron.sh
+ExecStart=/opt/lorawan-stack/deploy/olivenet/scripts/backup-cron.sh
 
 # Timeout (allow up to 30 minutes for backup)
 TimeoutStartSec=1800

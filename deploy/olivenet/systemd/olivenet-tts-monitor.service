@@ -23,16 +23,16 @@ User=root
 Group=root
 
 # Environment
-Environment=DEPLOY_DIR=/opt/olivenet-tts
+Environment=DEPLOY_DIR=/opt/lorawan-stack
 Environment=LOG_DIR=/var/log/olivenet-tts
 Environment=CHECK_INTERVAL=60
 Environment=FAILURE_THRESHOLD=3
 
 # Working directory
-WorkingDirectory=/opt/olivenet-tts/deploy/olivenet/scripts
+WorkingDirectory=/opt/lorawan-stack/deploy/olivenet/scripts
 
 # Start command
-ExecStart=/opt/olivenet-tts/deploy/olivenet/scripts/monitor-daemon.sh run
+ExecStart=/opt/lorawan-stack/deploy/olivenet/scripts/monitor-daemon.sh run
 ExecReload=/bin/kill -HUP $MAINPID
 
 # Restart policy
