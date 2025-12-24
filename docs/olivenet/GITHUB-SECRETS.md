@@ -1,154 +1,154 @@
 # GitHub Secrets Configuration
 
-Bu dokuman, Olivenet TTS CI/CD pipeline'larinin calismasıi icin gerekli GitHub secret'larını aciklar.
+This document explains the GitHub secrets required for Olivenet TTS CI/CD pipelines to work.
 
-## Gerekli Secrets
+## Required Secrets
 
-### Deployment Secrets (Zorunlu)
+### Deployment Secrets (Required)
 
-| Secret | Aciklama | Ornek |
-|--------|----------|-------|
-| `DEPLOY_SSH_KEY` | Sunucu SSH private key | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `DEPLOY_HOST` | Sunucu IP veya hostname | `192.168.1.100` veya `tts.olivenet.com` |
-| `DEPLOY_USER` | SSH kullanici adi | `deploy` veya `ubuntu` |
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `DEPLOY_SSH_KEY` | Server SSH private key | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+| `DEPLOY_HOST` | Server IP or hostname | `192.168.1.100` or `tts.olivenet.com` |
+| `DEPLOY_USER` | SSH username | `deploy` or `ubuntu` |
 
-### Notification Secrets (Opsiyonel)
+### Notification Secrets (Optional)
 
-| Secret | Aciklama | Ornek |
-|--------|----------|-------|
+| Secret | Description | Example |
+|--------|-------------|---------|
 | `TELEGRAM_BOT_TOKEN` | Telegram bot API token | `123456789:ABCdefGHIjklMNOpqrsTUVwxyz` |
 | `TELEGRAM_CHAT_ID` | Telegram chat/group ID | `-1001234567890` |
 
 ---
 
-## Secret Olusturma
+## Creating Secrets
 
-### 1. SSH Key Olusturma
+### 1. Creating SSH Key
 
-Sunucuya erisim icin SSH key cift olusturun:
+Create an SSH key pair for server access:
 
 ```bash
-# Yeni SSH key olustur
+# Create new SSH key
 ssh-keygen -t ed25519 -C "github-deploy@olivenet" -f ~/.ssh/github_deploy
 
-# Public key'i sunucuya ekle
-ssh-copy-id -i ~/.ssh/github_deploy.pub deploy@sunucu-ip
+# Add public key to server
+ssh-copy-id -i ~/.ssh/github_deploy.pub deploy@server-ip
 
-# Private key icerigi (DEPLOY_SSH_KEY icin)
+# Private key content (for DEPLOY_SSH_KEY)
 cat ~/.ssh/github_deploy
 ```
 
-**Onemli Notlar:**
-- Passphrase kullanmayin (bos birakin)
-- Private key'in tamamini kopyalayin (`-----BEGIN` ile `-----END` arasindaki her sey)
-- Sunucuda `/home/deploy/.ssh/authorized_keys` dosyasina public key eklendiginden emin olun
+**Important Notes:**
+- Do not use a passphrase (leave empty)
+- Copy the entire private key (everything between `-----BEGIN` and `-----END`)
+- Ensure the public key is added to `/home/deploy/.ssh/authorized_keys` on the server
 
-### 2. Deploy User Olusturma
+### 2. Creating Deploy User
 
-Sunucuda ozel bir deploy kullanicisi olusturun:
+Create a dedicated deploy user on the server:
 
 ```bash
-# Kullanici olustur
+# Create user
 sudo useradd -m -s /bin/bash deploy
 
-# Docker grubuna ekle
+# Add to docker group
 sudo usermod -aG docker deploy
 
-# Deployment dizinine erisim ver
+# Grant access to deployment directory
 sudo chown -R deploy:deploy /opt/olivenet-tts
 
-# SSH dizini olustur
+# Create SSH directory
 sudo -u deploy mkdir -p /home/deploy/.ssh
 sudo chmod 700 /home/deploy/.ssh
 ```
 
-### 3. Telegram Bot Olusturma
+### 3. Creating Telegram Bot
 
-1. Telegram'da [@BotFather](https://t.me/BotFather) ile konusun
-2. `/newbot` komutu ile yeni bot olusturun
-3. Bot adini ve kullanici adini girin
-4. Verilen API token'i `TELEGRAM_BOT_TOKEN` olarak kaydedin
+1. Chat with [@BotFather](https://t.me/BotFather) on Telegram
+2. Create a new bot with the `/newbot` command
+3. Enter the bot name and username
+4. Save the API token as `TELEGRAM_BOT_TOKEN`
 
-Chat ID almak icin:
+To get the Chat ID:
 ```bash
-# Botu bir gruba ekleyin, sonra:
+# Add the bot to a group, then:
 curl "https://api.telegram.org/bot<TOKEN>/getUpdates"
-# Cevaptaki chat.id degerini kullanin
+# Use the chat.id value from the response
 ```
 
 ---
 
-## GitHub'da Secret Ekleme
+## Adding Secrets to GitHub
 
 ### Repository Secrets
 
-1. GitHub repository'nize gidin
+1. Go to your GitHub repository
 2. **Settings** > **Secrets and variables** > **Actions**
-3. **New repository secret** tiklayin
-4. Secret adini ve degerini girin
+3. Click **New repository secret**
+4. Enter the secret name and value
 
 ### Environment Secrets
 
-Production ve staging icin ayri secret'lar kullanmak isterseniz:
+To use separate secrets for production and staging:
 
 1. **Settings** > **Environments**
-2. `staging` ve `production` environment'lari olusturun
-3. Her environment icin ayri secret'lar ekleyin
+2. Create `staging` and `production` environments
+3. Add separate secrets for each environment
 
 ---
 
-## Secret Referanslari
+## Secret References
 
 ### ci.yml
 ```yaml
-# Herhangi bir secret gerektirmez
-# Opsiyonel: CODECOV_TOKEN (coverage upload icin)
+# Does not require any secrets
+# Optional: CODECOV_TOKEN (for coverage upload)
 ```
 
 ### deploy.yml
 ```yaml
 secrets:
-  - DEPLOY_SSH_KEY      # Zorunlu
-  - DEPLOY_HOST         # Zorunlu
-  - DEPLOY_USER         # Zorunlu
-  - TELEGRAM_BOT_TOKEN  # Opsiyonel
-  - TELEGRAM_CHAT_ID    # Opsiyonel
+  - DEPLOY_SSH_KEY      # Required
+  - DEPLOY_HOST         # Required
+  - DEPLOY_USER         # Required
+  - TELEGRAM_BOT_TOKEN  # Optional
+  - TELEGRAM_CHAT_ID    # Optional
 ```
 
 ### release.yml
 ```yaml
 secrets:
-  - GITHUB_TOKEN        # Otomatik (repository'de var)
-  - TELEGRAM_BOT_TOKEN  # Opsiyonel
-  - TELEGRAM_CHAT_ID    # Opsiyonel
+  - GITHUB_TOKEN        # Automatic (available in repository)
+  - TELEGRAM_BOT_TOKEN  # Optional
+  - TELEGRAM_CHAT_ID    # Optional
 ```
 
 ### scheduled.yml
 ```yaml
 secrets:
-  - DEPLOY_SSH_KEY      # Backup verification icin
-  - DEPLOY_HOST         # Backup verification icin
-  - DEPLOY_USER         # Backup verification icin
-  - TELEGRAM_BOT_TOKEN  # Alert icin
-  - TELEGRAM_CHAT_ID    # Alert icin
+  - DEPLOY_SSH_KEY      # For backup verification
+  - DEPLOY_HOST         # For backup verification
+  - DEPLOY_USER         # For backup verification
+  - TELEGRAM_BOT_TOKEN  # For alerts
+  - TELEGRAM_CHAT_ID    # For alerts
 ```
 
 ---
 
-## Guvenlik Onerileri
+## Security Recommendations
 
-1. **SSH Key Rotation**: SSH key'leri 6 ayda bir degistirin
-2. **Minimal Permissions**: Deploy kullanicisina sadece gerekli izinleri verin
-3. **IP Whitelist**: Mumkunse sunucuda GitHub Actions IP'lerini whitelist'e alin
-4. **Audit Logs**: GitHub Actions log'larini duzenli kontrol edin
-5. **Environment Protection**: Production environment'a protection rule ekleyin
+1. **SSH Key Rotation**: Rotate SSH keys every 6 months
+2. **Minimal Permissions**: Grant only necessary permissions to the deploy user
+3. **IP Whitelist**: Whitelist GitHub Actions IPs on the server if possible
+4. **Audit Logs**: Regularly check GitHub Actions logs
+5. **Environment Protection**: Add protection rules for production environment
 
 ### Environment Protection Rules
 
-Production environment icin onerilir:
-- Required reviewers (en az 1 onay)
-- Wait timer (5 dakika bekleme)
-- Deployment branches (sadece main/master)
+Recommended for production environment:
+- Required reviewers (at least 1 approval)
+- Wait timer (5 minute wait)
+- Deployment branches (main/master only)
 
 ```
 Settings > Environments > production > Protection rules
@@ -156,18 +156,18 @@ Settings > Environments > production > Protection rules
 
 ---
 
-## Sorun Giderme
+## Troubleshooting
 
-### SSH Baglantı Hatası
+### SSH Connection Error
 
 ```
 Error: ssh: connect to host xxx port 22: Connection refused
 ```
 
-**Cozum:**
-1. Sunucuda SSH servisinin calistigini kontrol edin
-2. Firewall'da 22 portunu acin
-3. `DEPLOY_HOST` degerinin dogru oldugunu kontrol edin
+**Solution:**
+1. Verify SSH service is running on the server
+2. Open port 22 in the firewall
+3. Verify `DEPLOY_HOST` value is correct
 
 ### Permission Denied
 
@@ -175,22 +175,22 @@ Error: ssh: connect to host xxx port 22: Connection refused
 Error: Permission denied (publickey)
 ```
 
-**Cozum:**
-1. SSH key'in dogru formatta oldugunu kontrol edin
-2. Sunucuda authorized_keys dosyasini kontrol edin
-3. Dosya izinlerini kontrol edin:
+**Solution:**
+1. Verify SSH key is in correct format
+2. Check authorized_keys file on server
+3. Check file permissions:
    ```bash
    chmod 700 ~/.ssh
    chmod 600 ~/.ssh/authorized_keys
    ```
 
-### Telegram Notification Hatası
+### Telegram Notification Error
 
 ```
 Error: Bad Request: chat not found
 ```
 
-**Cozum:**
-1. Bot'un gruba eklendiginden emin olun
-2. Chat ID'nin dogru oldugunu kontrol edin (grup ID'leri negatif sayilarla baslar)
-3. Bot'a mesaj gonderme izni verildigini kontrol edin
+**Solution:**
+1. Ensure the bot is added to the group
+2. Verify Chat ID is correct (group IDs start with negative numbers)
+3. Verify the bot has permission to send messages

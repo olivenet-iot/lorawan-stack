@@ -1,43 +1,43 @@
-# LoRaWAN Simulator - Kullanım Rehberi
+# LoRaWAN Simulator - User Guide
 
-Bu dokümantasyon, Olivenet TTS için geliştirilen LoRaWAN simulator araçlarını açıklar.
+This documentation describes the LoRaWAN simulator tools developed for Olivenet TTS.
 
-## Genel Bakış
+## Overview
 
-Simulator, gerçek gateway ve device olmadan The Things Stack'i test etmek için kullanılır. Python tabanlıdır ve şu özellikleri destekler:
+The simulator is used to test The Things Stack without physical gateways and devices. It is Python-based and supports the following features:
 
-- **Gateway Simulator**: Semtech UDP Packet Forwarder protokolü
-- **Device Simulator**: OTAA/ABP cihaz simülasyonu
-- **Traffic Generator**: 5000+ cihaz yük testi
-- **Join Tester**: OTAA join akışı analizi
+- **Gateway Simulator**: Semtech UDP Packet Forwarder protocol
+- **Device Simulator**: OTAA/ABP device simulation
+- **Traffic Generator**: 5000+ device load testing
+- **Join Tester**: OTAA join flow analysis
 
-## Dizin Yapısı
+## Directory Structure
 
 ```
 deploy/olivenet/simulator/
-├── README.md                    # Hızlı başlangıç
-├── requirements.txt             # Python bağımlılıkları
-├── config.yml                   # Konfigürasyon
+├── README.md                    # Quick start
+├── requirements.txt             # Python dependencies
+├── config.yml                   # Configuration
 ├── lib/
 │   ├── __init__.py
-│   ├── lorawan_crypto.py        # LoRaWAN kriptografi
-│   ├── packet_forwarder.py      # Semtech UDP protokolü
+│   ├── lorawan_crypto.py        # LoRaWAN cryptography
+│   ├── packet_forwarder.py      # Semtech UDP protocol
 │   ├── device.py                # Virtual device
 │   └── gateway.py               # Virtual gateway
 ├── gateway_simulator.py         # Gateway simulator
 ├── device_simulator.py          # Device simulator
-├── traffic_generator.py         # Yük testi
-├── join_tester.py               # Join analizi
-├── scenarios/                   # Test senaryoları
+├── traffic_generator.py         # Load testing
+├── join_tester.py               # Join analysis
+├── scenarios/                   # Test scenarios
 │   ├── single_device.yml
 │   ├── multi_device.yml
 │   ├── join_storm.yml
 │   ├── sustained_traffic.yml
 │   └── stress_test.yml
-└── results/                     # Test sonuçları
+└── results/                     # Test results
 ```
 
-## Kurulum
+## Installation
 
 ```bash
 cd deploy/olivenet/simulator
@@ -46,22 +46,22 @@ cd deploy/olivenet/simulator
 python3 -m venv venv
 source venv/bin/activate
 
-# Bağımlılıklar
+# Dependencies
 pip install -r requirements.txt
 ```
 
-## Konfigürasyon
+## Configuration
 
 ### config.yml
 
 ```yaml
 stack:
-  host: "localhost"              # TTS sunucu
-  gateway_udp_port: 1700         # Gateway UDP portu
+  host: "localhost"              # TTS server
+  gateway_udp_port: 1700         # Gateway UDP port
 
 gateway:
   eui: "AA555A0000000001"        # Gateway EUI
-  frequency_plan: "EU_863_870"   # Frekans planı
+  frequency_plan: "EU_863_870"   # Frequency plan
   location:
     latitude: 35.1856            # North Cyprus
     longitude: 33.3823
@@ -73,43 +73,43 @@ device:
   lorawan_version: "1.0.3"       # LoRaWAN version
 
 simulation:
-  uplink_interval: 60            # Uplink aralığı (saniye)
+  uplink_interval: 60            # Uplink interval (seconds)
   data_rate: 5                   # SF7BW125
 ```
 
-### Yerel Konfigürasyon
+### Local Configuration
 
-Production değerleri için `config.local.yml` oluşturun:
+Create `config.local.yml` for production values:
 
 ```bash
 cp config.yml config.local.yml
 nano config.local.yml
 ```
 
-## Araçlar
+## Tools
 
 ### Gateway Simulator
 
-Virtual gateway bağlantısı:
+Virtual gateway connection:
 
 ```bash
-# Bağlantı testi
+# Connection test
 python gateway_simulator.py --test-only
 
-# Interactive mod
+# Interactive mode
 python gateway_simulator.py --interactive
 
-# Özel ayarlar
+# Custom settings
 python gateway_simulator.py \
   --eui AA555A0000000099 \
   --server lora.olivenet.com \
   --port 1700
 ```
 
-**Özellikler:**
-- Semtech UDP Packet Forwarder protokolü
+**Features:**
+- Semtech UDP Packet Forwarder protocol
 - PULL_DATA keepalive (30s interval)
-- Downlink alma ve loglama
+- Downlink reception and logging
 - Interactive uplink injection
 
 ### Device Simulator
@@ -123,7 +123,7 @@ python device_simulator.py \
   --app-key 00112233445566778899AABBCCDDEEFF \
   --uplinks 5
 
-# Scenario ile
+# With scenario
 python device_simulator.py --scenario scenarios/single_device.yml
 
 # ABP
@@ -136,7 +136,7 @@ python device_simulator.py \
 
 ### Join Tester
 
-Detaylı OTAA join analizi:
+Detailed OTAA join analysis:
 
 ```bash
 python join_tester.py \
@@ -144,18 +144,18 @@ python join_tester.py \
   --app-key 00112233445566778899AABBCCDDEEFF
 ```
 
-**Çıktı:**
-- Join Request detayları (DevNonce, MIC)
-- Join Accept işleme
+**Output:**
+- Join Request details (DevNonce, MIC)
+- Join Accept processing
 - Session key derivation
-- Timing analizi
+- Timing analysis
 
 ### Traffic Generator
 
-Yük testi:
+Load testing:
 
 ```bash
-# Temel test
+# Basic test
 python traffic_generator.py \
   --devices 100 \
   --rate 10 \
@@ -165,41 +165,41 @@ python traffic_generator.py \
 python traffic_generator.py --scenario scenarios/stress_test.yml
 ```
 
-**Özellikler:**
-- Asyncio tabanlı paralel işlem
-- Memory-efficient (5000+ device)
+**Features:**
+- Asyncio-based parallel processing
+- Memory-efficient (5000+ devices)
 - Progress bar
-- Detaylı istatistikler
+- Detailed statistics
 
-## Senaryolar
+## Scenarios
 
 ### single_device.yml
-- Amaç: Temel fonksiyonalite testi
-- 1 device, OTAA join, 5 uplink
-- Kullanım: Hızlı smoke test
+- Purpose: Basic functionality test
+- 1 device, OTAA join, 5 uplinks
+- Usage: Quick smoke test
 
 ### multi_device.yml
-- Amaç: Çoklu device testi
-- 10 device paralel
-- Kullanım: Concurrent device handling
+- Purpose: Multiple device test
+- 10 devices in parallel
+- Usage: Concurrent device handling
 
 ### join_storm.yml
-- Amaç: Join Server stress test
-- 100 device aynı anda join
-- Kullanım: Join capacity testi
+- Purpose: Join Server stress test
+- 100 devices joining simultaneously
+- Usage: Join capacity test
 
 ### sustained_traffic.yml
-- Amaç: Sürdürülebilirlik testi
-- 50 device, 5 dakika sürekli traffic
-- Kullanım: Stability testi
+- Purpose: Sustainability test
+- 50 devices, 5 minutes continuous traffic
+- Usage: Stability test
 
 ### stress_test.yml
-- Amaç: Production yük simülasyonu
-- 5000 device, 10 dakika
-- 500 uplink/saniye
-- Kullanım: Capacity planning
+- Purpose: Production load simulation
+- 5000 devices, 10 minutes
+- 500 uplinks/second
+- Usage: Capacity planning
 
-## API Kullanımı
+## API Usage
 
 ### VirtualDevice
 
@@ -214,12 +214,12 @@ device = VirtualDevice(
 
 # OTAA Join
 join_request = device.build_join_request()
-# ... gateway üzerinden gönder ...
+# ... send via gateway ...
 device.process_join_accept(join_accept_payload)
 
 # Uplink
 uplink = device.build_uplink(port=1, payload=b'\x01\x02\x03')
-# ... gateway üzerinden gönder ...
+# ... send via gateway ...
 ```
 
 ### VirtualGateway
@@ -252,7 +252,7 @@ from lib.lorawan_crypto import (
     encrypt_frm_payload,
 )
 
-# MIC hesapla
+# Compute MIC
 mic = compute_join_request_mic(
     app_key=bytes(16),
     mhdr=0x00,
@@ -261,7 +261,7 @@ mic = compute_join_request_mic(
     dev_nonce=0x1234,
 )
 
-# Session key türet
+# Derive session keys
 nwk_s_key, app_s_key = derive_session_keys(
     app_key=bytes(16),
     join_nonce=bytes(3),
@@ -270,63 +270,63 @@ nwk_s_key, app_s_key = derive_session_keys(
 )
 ```
 
-## Sorun Giderme
+## Troubleshooting
 
-### Gateway bağlanamıyor
+### Gateway not connecting
 
-1. TTS çalışıyor mu?
+1. Is TTS running?
 ```bash
 docker compose ps
 ```
 
-2. Port 1700 açık mı?
+2. Is port 1700 open?
 ```bash
 ss -ulnp | grep 1700
 nc -uvz localhost 1700
 ```
 
-3. Config doğru mu?
+3. Is config correct?
 ```bash
 cat config.yml | grep -A5 stack
 ```
 
-### Join başarısız
+### Join failed
 
-1. Device TTS'de kayıtlı mı?
+1. Is device registered in TTS?
 ```bash
 ttn-lw-cli end-devices get <app-id> <device-id>
 ```
 
-2. AppKey eşleşiyor mu?
+2. Does AppKey match?
 ```bash
 ttn-lw-cli end-devices get <app-id> <device-id> --root-keys
 ```
 
-3. Join tester çalıştır:
+3. Run join tester:
 ```bash
 python join_tester.py --dev-eui <eui> --app-key <key>
 ```
 
-### Düşük performans
+### Low performance
 
-1. Network latency kontrol:
+1. Check network latency:
 ```bash
 ping <tts-host>
 ```
 
-2. TTS resource kullanımı:
+2. Check TTS resource usage:
 ```bash
 docker stats
 ```
 
-3. Rate limit azalt:
+3. Reduce rate limit:
 ```bash
-python traffic_generator.py --rate 5  # Daha düşük rate
+python traffic_generator.py --rate 5  # Lower rate
 ```
 
-## Test Sonuçları
+## Test Results
 
-Sonuçlar `results/` dizininde JSON formatında saklanır:
+Results are stored in the `results/` directory in JSON format:
 
 ```json
 {
@@ -343,14 +343,14 @@ Sonuçlar `results/` dizininde JSON formatında saklanır:
 
 ## Best Practices
 
-1. **Önce küçük başla**: `single_device.yml` ile test et
-2. **Kademeli artır**: 10 → 100 → 1000 → 5000 device
-3. **TTS kaynaklarını izle**: `docker stats`
-4. **Sonuçları kaydet**: `--output results/test_name.json`
-5. **Log'ları kontrol et**: TTS loglarını izle
+1. **Start small**: Test with `single_device.yml` first
+2. **Scale gradually**: 10 → 100 → 1000 → 5000 devices
+3. **Monitor TTS resources**: Use `docker stats`
+4. **Save results**: Use `--output results/test_name.json`
+5. **Check logs**: Monitor TTS logs
 
-## İlgili Dokümantasyon
+## Related Documentation
 
-- [OPERATIONS.md](OPERATIONS.md) - Operasyonel prosedürler
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Sorun giderme
-- [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment rehberi
+- [OPERATIONS.md](OPERATIONS.md) - Operational procedures
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Troubleshooting guide
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment guide

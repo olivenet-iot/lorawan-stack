@@ -1,20 +1,20 @@
 # Olivenet TTS - Operations Guide
 
-Bu dokuman, Olivenet TTS deployment'inin gunluk operasyonlari icin rehber niteligindedir.
+This document serves as a guide for daily operations of the Olivenet TTS deployment.
 
-## Hizli Basvuru
+## Quick Reference
 
-| Islem | Komut |
-|-------|-------|
-| Stack durumu | `docker-compose ps` |
-| Logları izle | `docker-compose logs -f stack` |
+| Operation | Command |
+|-----------|---------|
+| Stack status | `docker-compose ps` |
+| View logs | `docker-compose logs -f stack` |
 | Health check | `./scripts/health-check.sh` |
-| Manuel backup | `./scripts/backup.sh` |
+| Manual backup | `./scripts/backup.sh` |
 | Restore | `./scripts/restore.sh <backup.tar.gz>` |
 
 ---
 
-## Dizin Yapisi
+## Directory Structure
 
 ```
 /opt/olivenet-tts/
@@ -43,40 +43,40 @@ Bu dokuman, Olivenet TTS deployment'inin gunluk operasyonlari icin rehber niteli
 
 ---
 
-## Backup Islemleri
+## Backup Operations
 
-### Manuel Backup
+### Manual Backup
 
 ```bash
 # Full backup
 ./scripts/backup.sh
 
-# Sadece database
+# Database only
 ./scripts/backup.sh --db-only
 
-# Sadece config
+# Config only
 ./scripts/backup.sh --config-only
 
-# Ozel retention suresi
+# Custom retention period
 ./scripts/backup.sh --retention 14
 ```
 
-### Zamanlanmis Backup
+### Scheduled Backup
 
-Backup'lar gunluk olarak saat 02:00'de calisir. Timer durumu:
+Backups run daily at 02:00. Timer status:
 
 ```bash
-# Timer durumu
+# Timer status
 sudo systemctl status olivenet-tts-backup.timer
 
-# Sonraki calisma zamani
+# Next run time
 sudo systemctl list-timers olivenet-tts-backup.timer
 
-# Manuel tetikleme
+# Manual trigger
 sudo systemctl start olivenet-tts-backup.service
 ```
 
-### Backup Lokasyonu
+### Backup Location
 
 ```
 /var/backups/olivenet-tts/
@@ -90,69 +90,69 @@ sudo systemctl start olivenet-tts-backup.service
 └── .latest -> daily/backup-20250121-020000.tar.gz
 ```
 
-### Backup Icerigi
+### Backup Contents
 
 ```bash
-# Backup icerigini listele
+# List backup contents
 ./scripts/restore.sh --list backup-20250120-020000.tar.gz
 ```
 
 ---
 
-## Restore Islemleri
+## Restore Operations
 
-### Tam Restore
+### Full Restore
 
 ```bash
-# En son backup'tan restore
+# Restore from latest backup
 ./scripts/restore.sh
 
-# Belirli backup'tan restore
+# Restore from specific backup
 ./scripts/restore.sh backup-20250120-020000.tar.gz
 
-# Dry-run (degisiklik yapmadan)
+# Dry-run (without making changes)
 ./scripts/restore.sh --dry-run backup-20250120-020000.tar.gz
 ```
 
-### Kısmi Restore
+### Partial Restore
 
 ```bash
-# Sadece database
+# Database only
 ./scripts/restore.sh --db-only backup-20250120-020000.tar.gz
 
-# Sadece config
+# Config only
 ./scripts/restore.sh --config-only backup-20250120-020000.tar.gz
 ```
 
-### Onemli Notlar
+### Important Notes
 
-- Restore islemi oncesinde otomatik olarak mevcut durum backup'lanir
-- `--skip-pre-backup` ile bu atlanabilir (onerılmez)
-- Restore sonrasi stack otomatik restart edilir
+- Current state is automatically backed up before restore
+- Can be skipped with `--skip-pre-backup` (not recommended)
+- Stack is automatically restarted after restore
 
 ---
 
 ## Health Check
 
-### Manuel Kontrol
+### Manual Check
 
 ```bash
-# Tum kontroller
+# All checks
 ./scripts/health-check.sh
 
 # JSON output
 ./scripts/health-check.sh --json
 
-# Belirli component
+# Specific component
 ./scripts/health-check.sh --component stack
 ./scripts/health-check.sh --component postgres
 ./scripts/health-check.sh --component redis
 ```
 
-### Kontrol Edilen Bilesenler
+### Checked Components
 
-| Bilesen | Kontrol | Threshold |
-|---------|---------|-----------|
+| Component | Check | Threshold |
+|-----------|-------|-----------|
 | stack | /healthz endpoint | HTTP 200 |
 | postgres | pg_isready | Connection count < 180 |
 | redis | PING | Memory usage |
@@ -163,8 +163,8 @@ sudo systemctl start olivenet-tts-backup.service
 
 ### Exit Codes
 
-| Code | Anlam |
-|------|-------|
+| Code | Meaning |
+|------|---------|
 | 0 | Healthy |
 | 1 | Degraded (warnings) |
 | 2 | Critical (errors) |
@@ -173,64 +173,64 @@ sudo systemctl start olivenet-tts-backup.service
 
 ## Monitoring
 
-### Daemon Baslatma
+### Starting the Daemon
 
 ```bash
-# Daemon baslat
+# Start daemon
 ./scripts/monitor-daemon.sh start
 
-# Durumu kontrol et
+# Check status
 ./scripts/monitor-daemon.sh status
 
-# Durdur
+# Stop
 ./scripts/monitor-daemon.sh stop
 
-# Yeniden baslat
+# Restart
 ./scripts/monitor-daemon.sh restart
 ```
 
-### Systemd ile Yonetim
+### Management with Systemd
 
 ```bash
-# Service durumu
+# Service status
 sudo systemctl status olivenet-tts-monitor
 
-# Loglari izle
+# View logs
 sudo journalctl -u olivenet-tts-monitor -f
 
-# Yeniden baslat
+# Restart
 sudo systemctl restart olivenet-tts-monitor
 ```
 
-### Monitoring Ozellikleri
+### Monitoring Features
 
-- Her 60 saniyede health check
-- 3 ardisik basarisizlikta alert
-- Duzeldikten sonra recovery alert
-- Status dosyasi: `/var/run/olivenet-tts-monitor.status`
+- Health check every 60 seconds
+- Alert after 3 consecutive failures
+- Recovery alert when restored
+- Status file: `/var/run/olivenet-tts-monitor.status`
 
 ---
 
-## Alert Sistemi
+## Alert System
 
-### Alert Kanallari
+### Alert Channels
 
-1. **Telegram** - Aninda bildirim
-2. **Email** - Detayli rapor
-3. **Webhook** - Entegrasyonlar (Slack, Discord, PagerDuty)
+1. **Telegram** - Instant notification
+2. **Email** - Detailed report
+3. **Webhook** - Integrations (Slack, Discord, PagerDuty)
 
-### Yapilandirma
+### Configuration
 
 ```bash
-# Config dosyasini olustur
+# Create config file
 cp config/alert.conf.example config/alert.conf
 chmod 600 config/alert.conf
 
-# Gerekli degerleri duzenle
+# Edit required values
 vim config/alert.conf
 ```
 
-### Manuel Alert Gonderme
+### Manual Alert Sending
 
 ```bash
 # Telegram
@@ -242,7 +242,7 @@ vim config/alert.conf
 # Webhook
 ./scripts/alert.sh --webhook "https://hooks.slack.com/..." "Test message"
 
-# Tum kanallar
+# All channels
 ./scripts/alert.sh --all "Test message to all channels"
 ```
 
@@ -250,17 +250,17 @@ vim config/alert.conf
 
 ## Status Page
 
-### Olusturma
+### Generation
 
 ```bash
-# Varsayilan konum (/var/www/status)
+# Default location (/var/www/status)
 ./scripts/status-page.sh
 
-# Ozel konum
+# Custom location
 ./scripts/status-page.sh --output /var/www/html/status
 ```
 
-### Nginx Yapilandirmasi
+### Nginx Configuration
 
 ```nginx
 server {
@@ -274,9 +274,9 @@ server {
 }
 ```
 
-### Otomatik Guncelleme
+### Automatic Updates
 
-Status page her 60 saniyede otomatik refresh yapar. Sureli guncelleme icin cron:
+Status page auto-refreshes every 60 seconds. For periodic updates, use cron:
 
 ```cron
 * * * * * /opt/olivenet-tts/deploy/olivenet/scripts/status-page.sh
@@ -284,52 +284,52 @@ Status page her 60 saniyede otomatik refresh yapar. Sureli guncelleme icin cron:
 
 ---
 
-## Log Yonetimi
+## Log Management
 
-### Log Lokasyonlari
+### Log Locations
 
-| Log | Lokasyon |
+| Log | Location |
 |-----|----------|
 | Stack logs | `docker-compose logs stack` |
 | Backup logs | `/var/log/olivenet-tts/backup.log` |
 | Monitor logs | `journalctl -u olivenet-tts-monitor` |
 | Cron logs | `/var/log/olivenet-tts/backup-cron.log` |
 
-### Log Filtreleme
+### Log Filtering
 
 ```bash
-# Son 100 satir
+# Last 100 lines
 docker-compose logs --tail=100 stack
 
-# Belirli zaman araligi
+# Specific time range
 docker-compose logs --since="2025-01-20" stack
 
-# Hata filtreleme
+# Error filtering
 docker-compose logs stack 2>&1 | grep -i error
 ```
 
 ### Log Rotation
 
-Docker log rotation docker-compose.yml'de yapilandirilmistir:
+Docker log rotation is configured in docker-compose.yml:
 - Max size: 100MB
 - Max files: 5
 
 ---
 
-## Gunluk Operasyonlar
+## Daily Operations
 
-### Sabah Kontrolleri
+### Morning Checks
 
-1. Health check calistir: `./scripts/health-check.sh`
-2. Son backup'i kontrol et: `ls -la /var/backups/olivenet-tts/.latest`
-3. Disk kullanimini kontrol et: `df -h`
-4. Log'larda hata ara: `docker-compose logs --since="24h" stack | grep -i error`
+1. Run health check: `./scripts/health-check.sh`
+2. Verify last backup: `ls -la /var/backups/olivenet-tts/.latest`
+3. Check disk usage: `df -h`
+4. Search for errors in logs: `docker-compose logs --since="24h" stack | grep -i error`
 
-### Haftalik Gorevler
+### Weekly Tasks
 
-1. Backup integrity testi: `./scripts/restore.sh --dry-run $(readlink /var/backups/olivenet-tts/.latest)`
-2. SSL sertifika kontrolu: `./scripts/health-check.sh --component ssl`
-3. Disk temizligi: Eski log'lari sil
+1. Backup integrity test: `./scripts/restore.sh --dry-run $(readlink /var/backups/olivenet-tts/.latest)`
+2. SSL certificate check: `./scripts/health-check.sh --component ssl`
+3. Disk cleanup: Delete old logs
 
 ### Deployment
 
@@ -343,7 +343,7 @@ docker-compose pull
 # Update stack
 docker-compose up -d
 
-# Migration (gerekirse)
+# Migration (if needed)
 docker-compose exec stack ttn-lw-stack is-db migrate
 ```
 
@@ -351,29 +351,29 @@ docker-compose exec stack ttn-lw-stack is-db migrate
 
 ## Troubleshooting
 
-Detayli sorun giderme icin: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+For detailed troubleshooting: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
-### Hizli Cozumler
+### Quick Solutions
 
-**Stack baslamiyor:**
+**Stack not starting:**
 ```bash
 docker-compose logs stack | tail -50
 docker-compose down && docker-compose up -d
 ```
 
-**Database baglanti hatasi:**
+**Database connection error:**
 ```bash
 docker-compose exec postgres pg_isready -U ttn
 docker-compose restart postgres
 ```
 
-**Redis baglanti hatasi:**
+**Redis connection error:**
 ```bash
 docker-compose exec redis redis-cli PING
 docker-compose restart redis
 ```
 
-**Memory yetersiz:**
+**Insufficient memory:**
 ```bash
 docker stats
 docker system prune -a
@@ -383,22 +383,22 @@ docker system prune -a
 
 ## CI/CD
 
-GitHub Actions workflow'lari:
+GitHub Actions workflows:
 
-| Workflow | Trigger | Islem |
-|----------|---------|-------|
+| Workflow | Trigger | Operation |
+|----------|---------|-----------|
 | ci.yml | Push/PR | Lint, test, build |
 | deploy.yml | Manual/Tag | Deploy to server |
 | release.yml | Release | Build & publish |
 | scheduled.yml | Cron | Security scan, backup verify |
 
-### Manuel Deployment
+### Manual Deployment
 
 ```bash
-# GitHub Actions üzerinden
+# Via GitHub Actions
 # Actions > Deploy > Run workflow
 
-# Veya sunucuda direkt
+# Or directly on server
 cd /opt/olivenet-tts
 git pull
 cd deploy/olivenet
@@ -408,21 +408,21 @@ docker-compose pull && docker-compose up -d
 ### Rollback
 
 ```bash
-# Onceki commit'e don
+# Revert to previous commit
 git checkout HEAD~1
 docker-compose up -d
 
-# Veya belirli tag'e
+# Or to specific tag
 git checkout v1.0.0
 docker-compose up -d
 ```
 
 ---
 
-## Ilgili Dokumanlar
+## Related Documents
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Sistem mimarisi
-- [DEPLOYMENT.md](DEPLOYMENT.md) - Kurulum rehberi
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Sorun giderme
-- [GITHUB-SECRETS.md](GITHUB-SECRETS.md) - CI/CD yapilandirma
-- [CONFIG-VALIDATION-REPORT.md](CONFIG-VALIDATION-REPORT.md) - Config dogrulama
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Installation guide
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Troubleshooting guide
+- [GITHUB-SECRETS.md](GITHUB-SECRETS.md) - CI/CD configuration
+- [CONFIG-VALIDATION-REPORT.md](CONFIG-VALIDATION-REPORT.md) - Config validation
