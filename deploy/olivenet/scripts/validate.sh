@@ -328,6 +328,14 @@ check_gateway_connectivity() {
     # shellcheck disable=SC1091
     source venv/bin/activate 2>/dev/null || true
 
+    # Check if pycryptodome works
+    if ! python3 -c "from Crypto.Cipher import AES" 2>/dev/null; then
+        warn "Gateway test" "pycryptodome not working. Run: ./scripts/setup-tools.sh --force"
+        deactivate 2>/dev/null || true
+        cd "$DEPLOY_DIR"
+        return 0
+    fi
+
     if gw_result=$(timeout 10 python3 gateway_simulator.py \
         --server "$DOMAIN" \
         --port 1700 \

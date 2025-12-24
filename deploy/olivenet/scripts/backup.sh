@@ -204,18 +204,18 @@ backup_config() {
     mkdir -p "$config_dir"
 
     # Copy deployment config files
-    if [[ -d "$DEPLOY_DIR/deploy/olivenet/config" ]]; then
-        cp -r "$DEPLOY_DIR/deploy/olivenet/config/"* "$config_dir/" 2>/dev/null || true
+    if [[ -d "$DEPLOY_DIR/config" ]]; then
+        cp -r "$DEPLOY_DIR/config/"* "$config_dir/" 2>/dev/null || true
     fi
 
     # Copy .env file if exists
-    if [[ -f "$DEPLOY_DIR/deploy/olivenet/.env" ]]; then
-        cp "$DEPLOY_DIR/deploy/olivenet/.env" "$config_dir/" 2>/dev/null || true
+    if [[ -f "$DEPLOY_DIR/.env" ]]; then
+        cp "$DEPLOY_DIR/.env" "$config_dir/" 2>/dev/null || true
     fi
 
     # Copy docker-compose files
-    if [[ -f "$DEPLOY_DIR/deploy/olivenet/docker-compose.yml" ]]; then
-        cp "$DEPLOY_DIR/deploy/olivenet/docker-compose.yml" "$config_dir/" 2>/dev/null || true
+    if [[ -f "$DEPLOY_DIR/docker-compose.yml" ]]; then
+        cp "$DEPLOY_DIR/docker-compose.yml" "$config_dir/" 2>/dev/null || true
     fi
 
     local file_count

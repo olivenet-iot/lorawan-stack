@@ -163,7 +163,14 @@ source "$VENV_DIR/bin/activate"
 # Upgrade pip
 pip install --upgrade pip -q 2>/dev/null || pip install --upgrade pip
 
-# Install requirements
+# Uninstall conflicting crypto packages first (crypto, pycrypto, Crypto)
+pip uninstall -y crypto pycrypto Crypto 2>/dev/null || true
+
+# Force reinstall pycryptodome to ensure clean installation
+pip install --force-reinstall pycryptodome -q 2>/dev/null || pip install --force-reinstall pycryptodome
+log_ok "pycryptodome installed"
+
+# Install remaining requirements
 if [[ -f "$SIMULATOR_DIR/requirements.txt" ]]; then
     pip install -r "$SIMULATOR_DIR/requirements.txt" -q 2>/dev/null || \
         pip install -r "$SIMULATOR_DIR/requirements.txt"
@@ -215,13 +222,9 @@ echo "Simulator environment activated"
 echo ""
 echo "Available commands:"
 echo "  python3 gateway_simulator.py --help"
-echo "  python3 join_tester.py --help"
-echo "  python3 traffic_generator.py --help"
-echo "  python3 device_simulator.py --help"
 echo ""
-echo "Quick tests:"
+echo "Quick test:"
 echo "  python3 gateway_simulator.py --test-only"
-echo "  python3 traffic_generator.py --devices 10 --duration 60"
 echo ""
 ACTIVATE_EOF
 
@@ -239,10 +242,7 @@ try:
     from Crypto.Cipher import AES
     from Crypto.Hash import CMAC
     import yaml
-    import requests
     import colorama
-    import tabulate
-    import tqdm
     print('All imports successful')
     sys.exit(0)
 except ImportError as e:
@@ -289,8 +289,8 @@ echo ""
 echo "  # Gateway connectivity test"
 echo -e "  ${YELLOW}python3 gateway_simulator.py --server localhost --port 1700 --test-only${NC}"
 echo ""
-echo "  # Traffic load test (10 devices, 1 minute)"
-echo -e "  ${YELLOW}python3 traffic_generator.py --devices 10 --duration 60 --rate 2${NC}"
+echo "  # Interactive gateway session"
+echo -e "  ${YELLOW}python3 gateway_simulator.py --server localhost --port 1700 --interactive${NC}"
 echo ""
 echo "  # MQTT subscription test"
 echo -e "  ${YELLOW}mosquitto_sub -h localhost -p 1883 -t 'v3/+/devices/+/up' -d${NC}"
