@@ -141,7 +141,24 @@ curl -sk https://YOUR_DOMAIN/healthz | jq .status
 # Expected: "OK"
 ```
 
-### Step 7: MQTT Test (Optional)
+### Step 7: Setup Services (Optional)
+
+```bash
+sudo ./scripts/setup-services.sh
+```
+
+This will:
+- Create log and backup directories (`/var/log/olivenet-tts`, `/var/backups/olivenet-tts`)
+- Enable daily backup timer (runs at 02:00)
+- Optionally enable health monitoring daemon with alerts
+
+**Validation:**
+```bash
+systemctl list-timers olivenet-tts-backup.timer
+# Expected: Shows next scheduled backup time
+```
+
+### Step 8: MQTT Test (Optional)
 
 1. Create an Application in Console
 2. Application -> Integrations -> MQTT -> Generate API Key
@@ -216,6 +233,7 @@ docker compose restart stack
 | `./scripts/health-check.sh` | Service status |
 | `./scripts/validate.sh` | Full validation |
 | `./scripts/setup-tools.sh` | Install test tools |
+| `sudo ./scripts/setup-services.sh` | Setup systemd services |
 | `./scripts/backup.sh` | Create backup |
 | `./scripts/restore.sh` | Restore from backup |
 | `docker compose logs -f stack` | Live logs |

@@ -529,3 +529,23 @@ echo "  5. Add end devices"
 echo ""
 echo -e "${CYAN}For troubleshooting: ./scripts/health-check.sh${NC}"
 echo ""
+
+# =============================================================================
+# Post-Deployment Services Setup
+# =============================================================================
+echo ""
+read -p "Setup systemd services (backup timer, monitoring)? [y/N]: " setup_services
+setup_services=${setup_services:-N}
+
+if [[ "$setup_services" =~ ^[Yy]$ ]]; then
+    if [[ -f "$SCRIPT_DIR/setup-services.sh" ]]; then
+        log_info "Running setup-services.sh..."
+        sudo "$SCRIPT_DIR/setup-services.sh"
+    else
+        log_warn "setup-services.sh not found"
+    fi
+else
+    log_info "Skipping service setup. Run later with:"
+    log_info "  sudo ./scripts/setup-services.sh"
+fi
+echo ""
