@@ -20,7 +20,7 @@ Log viewing and analysis.
 ### Stack Logs
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet
+cd /opt/lorawan-stack/deploy/olivenet
 docker compose logs stack --tail 100
 ```
 

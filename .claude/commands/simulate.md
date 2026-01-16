@@ -19,7 +19,7 @@ Runs LoRaWAN gateway simulator for testing TTS connectivity.
 Before using the simulator for the first time:
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet
+cd /opt/lorawan-stack/deploy/olivenet
 
 # Run setup script (recommended)
 ./scripts/setup-tools.sh
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 Gateway connection simulation:
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet/simulator
+cd /opt/lorawan-stack/deploy/olivenet/simulator
 source activate.sh
 
 # Connection test

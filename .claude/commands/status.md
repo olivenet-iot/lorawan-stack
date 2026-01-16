@@ -15,7 +15,7 @@ Shows system status.
 ### 1. Run Health Check
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet/scripts
+cd /opt/lorawan-stack/deploy/olivenet/scripts
 ./health-check.sh
 ```
 

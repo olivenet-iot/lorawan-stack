@@ -19,7 +19,7 @@ Runs system tests.
 Gateway connection test:
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet/simulator
+cd /opt/lorawan-stack/deploy/olivenet/simulator
 source venv/bin/activate
 python gateway_simulator.py --test-only
 ```
@@ -34,7 +34,7 @@ Expected output:
 Device join test:
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet/simulator
+cd /opt/lorawan-stack/deploy/olivenet/simulator
 python join_tester.py \
   --dev-eui 70B3D57ED0000001 \
   --app-key 00112233445566778899AABBCCDDEEFF

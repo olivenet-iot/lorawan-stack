@@ -19,7 +19,7 @@ Deploys or updates the TTS stack.
 The deploy.sh script handles all steps automatically:
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet
+cd /opt/lorawan-stack/deploy/olivenet
 ./scripts/deploy.sh
 ```
 

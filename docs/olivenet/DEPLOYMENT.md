@@ -22,62 +22,45 @@ This guide covers production deployment of The Things Stack for Olivenet's 3000+
 
 ## Quick Start
 
-### 1. Clone and Configure
+### 1. Clone Repository
 
 ```bash
-cd /path/to/lorawan-stack
-cp deploy/olivenet/.env.example deploy/olivenet/.env
+sudo git clone https://github.com/olivenet-iot/lorawan-stack.git /opt/lorawan-stack
+sudo chown -R $USER:docker /opt/lorawan-stack
+cd /opt/lorawan-stack/deploy/olivenet
 ```
 
-### 2. Edit Environment Variables
+### 2. Run Preflight Check (Optional)
 
 ```bash
-vim deploy/olivenet/.env
-
-# Required changes:
-# - DOMAIN=your-domain.com
-# - POSTGRES_PASSWORD=<strong-password>
-# - REDIS_PASSWORD=<strong-password>
-# - ADMIN_PASSWORD=<strong-password>
-# - CONSOLE_SECRET=<32-char-secret>
-# - DEVICE_CLAIMING_SECRET=<32-char-secret>
+./scripts/preflight-check.sh
 ```
 
-### 3. Generate TLS Certificates
-
-**Option A: Let's Encrypt (Recommended)**
-```bash
-# Certificates will be auto-generated on first start
-# Ensure ports 80 and 443 are accessible from internet
-```
-
-**Option B: Custom Certificates**
-```bash
-mkdir -p deploy/olivenet/certs
-cp your-cert.pem deploy/olivenet/certs/cert.pem
-cp your-key.pem deploy/olivenet/certs/key.pem
-cp your-ca.pem deploy/olivenet/certs/ca.pem
-```
-
-### 4. Start Services
+### 3. Start Interactive Deployment
 
 ```bash
-cd deploy/olivenet
-docker-compose up -d
-
-# Check logs
-docker-compose logs -f stack
+./scripts/deploy.sh
 ```
 
-### 5. Initialize Database
+The script will interactively ask for:
+- **Domain**: Your TTS domain (e.g., tts.yourdomain.com)
+- **Email**: Admin email for Let's Encrypt
+- **TLS**: Let's Encrypt (recommended), self-signed, or none
+
+All secrets and configuration files are generated automatically.
+
+### 4. Verify Deployment
 
 ```bash
-# Create admin user
-docker-compose exec stack ttn-lw-stack is-db migrate
-docker-compose exec stack ttn-lw-stack is-db create-admin-user \
-  --id admin \
-  --email admin@olivenet.com
+./scripts/health-check.sh
+./scripts/validate.sh
 ```
+
+### 5. Access Console
+
+Open `https://YOUR_DOMAIN/console` and login with the credentials shown after deployment.
+
+> **Note**: For manual deployment or advanced configuration options, see the [Manual Deployment](#manual-deployment) section below.
 
 ## Production Configuration
 

@@ -19,7 +19,7 @@ Troubleshooting guide and diagnostics.
 First run general status check:
 
 ```bash
-cd /home/ubuntu/lorawan-stack/deploy/olivenet/scripts
+cd /opt/lorawan-stack/deploy/olivenet/scripts
 ./health-check.sh
 ```
 

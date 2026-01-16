@@ -179,10 +179,16 @@ deploy/olivenet/
 ├── config/
 │   └── ttn-lw-stack.yml    # Stack configuration
 ├── scripts/
+│   ├── deploy.sh           # Main deployment script
 │   ├── health-check.sh     # System health monitoring
 │   ├── preflight-check.sh  # Pre-deployment verification
+│   ├── setup-services.sh   # Systemd service setup
+│   ├── setup-tools.sh      # Python/simulator setup
 │   ├── backup.sh           # Backup automation
-│   └── restore.sh          # Restore from backup
+│   ├── restore.sh          # Restore from backup
+│   ├── validate.sh         # Installation validation
+│   ├── monitor-daemon.sh   # Health monitoring daemon
+│   └── alert.sh            # Alert notifications
 └── simulator/              # LoRaWAN simulator tools
     ├── gateway_simulator.py
     ├── device_simulator.py
