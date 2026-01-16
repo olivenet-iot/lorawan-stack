@@ -32,14 +32,10 @@ check_env_file() {
     local env_file="${DEPLOY_DIR:-.}/.env"
 
     if [[ ! -f "$env_file" ]]; then
-        # Check if .env.example exists
-        if [[ -f "${env_file}.example" ]]; then
-            RESULTS["env_file"]="error|.env not found (copy from .env.example)"
-        else
-            RESULTS["env_file"]="error|.env not found"
-        fi
-        ERRORS=$((ERRORS + 1))
-        return 1
+        # .env is created interactively by deploy.sh, so this is just a warning
+        RESULTS["env_file"]="warning|.env not found (will be created by deploy.sh)"
+        WARNINGS=$((WARNINGS + 1))
+        return 0
     fi
 
     if [[ ! -r "$env_file" ]]; then
