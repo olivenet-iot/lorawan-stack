@@ -251,6 +251,8 @@ docker compose restart stack
 | 80 | HTTP | Console/API (redirect) |
 | 443 | HTTPS | Console/API |
 | 1700/UDP | Semtech UDP | Gateway Packet Forwarder |
+| 1881 | MQTT | GS MQTT v2 (Legacy) |
+| 8881 | MQTTS | GS MQTT v2 (Legacy TLS) |
 | 1882 | MQTT | GS Gateway |
 | 8882 | MQTTS | GS Gateway (TLS) |
 | 1883 | MQTT | AS Application |

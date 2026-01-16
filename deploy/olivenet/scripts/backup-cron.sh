@@ -114,7 +114,7 @@ fi
 # Rotate log file if too large (>10MB)
 LOG_FILE="$LOG_DIR/backup-cron.log"
 if [[ -f "$LOG_FILE" ]]; then
-    LOG_SIZE=$(stat -f%z "$LOG_FILE" 2>/dev/null || stat -c%s "$LOG_FILE" 2>/dev/null || echo "0")
+    LOG_SIZE=$(stat -c%s "$LOG_FILE" 2>/dev/null || stat -f%z "$LOG_FILE" 2>/dev/null || echo "0")
     if [[ $LOG_SIZE -gt 10485760 ]]; then
         mv "$LOG_FILE" "${LOG_FILE}.old"
         gzip "${LOG_FILE}.old" 2>/dev/null || true

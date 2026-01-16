@@ -382,7 +382,7 @@ else
     exit 1
 fi
 
-if docker compose exec -T redis redis-cli -a "${REDIS_PASS}" PING &>/dev/null; then
+if docker compose exec -T -e REDISCLI_AUTH="${REDIS_PASS}" redis redis-cli --no-auth-warning PING &>/dev/null; then
     log_success "Redis is ready"
 else
     log_error "Redis is not ready"

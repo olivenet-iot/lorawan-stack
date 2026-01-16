@@ -176,7 +176,7 @@ backup_redis() {
     redis_password=$(docker inspect "$REDIS_CONTAINER" --format '{{range .Config.Cmd}}{{println .}}{{end}}' | grep -A1 'requirepass' | tail -1 || echo "")
 
     if [[ -n "$redis_password" ]]; then
-        docker exec "$REDIS_CONTAINER" redis-cli -a "$redis_password" BGSAVE > /dev/null 2>&1 || true
+        docker exec -e REDISCLI_AUTH="$redis_password" "$REDIS_CONTAINER" redis-cli --no-auth-warning BGSAVE > /dev/null 2>&1 || true
     else
         docker exec "$REDIS_CONTAINER" redis-cli BGSAVE > /dev/null 2>&1 || true
     fi

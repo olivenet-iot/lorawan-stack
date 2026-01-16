@@ -418,17 +418,6 @@ attempt_fixes() {
 main() {
     parse_args "$@"
 
-    # Reinitialize colors if NO_COLOR was set via argument
-    if [[ "${NO_COLOR:-false}" == "true" ]]; then
-        RED=""
-        GREEN=""
-        YELLOW=""
-        BLUE=""
-        CYAN=""
-        NC=""
-        BOLD=""
-    fi
-
     # Export DEPLOY_DIR for check modules
     export DEPLOY_DIR
 
