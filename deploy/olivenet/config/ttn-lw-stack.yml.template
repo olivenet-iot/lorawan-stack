@@ -95,7 +95,7 @@ device-repository:
 # =============================================================================
 is:
   # Note: database-uri is overridden by TTN_LW_IS_DATABASE_URI env var in docker-compose
-  database-uri: "postgres://ttn:password@postgres:5432/ttn_lorawan?sslmode=disable"
+  database-uri: "postgres://ttn:MUST_BE_SET_VIA_ENV@postgres:5432/ttn_lorawan?sslmode=disable"
 
   # OAuth configuration
   oauth:

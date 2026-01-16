@@ -194,7 +194,7 @@ log_info "Generating secrets..."
 
 POSTGRES_PASS=$(openssl rand -hex 16)
 REDIS_PASS=$(openssl rand -hex 16)
-ADMIN_PASS=$(openssl rand -base64 12 | tr -d '/+=')
+ADMIN_PASS=$(openssl rand -hex 8)
 CONSOLE_SECRET=$(openssl rand -hex 32)
 DEVICE_CLAIMING_SECRET=$(openssl rand -hex 32)
 HASH_KEY=$(openssl rand -hex 32)
@@ -443,8 +443,9 @@ if [[ "$SKIP_OAUTH" != "true" ]]; then
     # Fix OAuth grants (CRITICAL!)
     log_info "Fixing OAuth grants..."
     source "${DEPLOY_DIR}/.env"
-    docker compose exec -T postgres psql -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -c \
-        "UPDATE clients SET grants = '{0,2}', skip_authorization = true, endorsed = true WHERE client_id = 'console';" || true
+    docker compose exec -T postgres psql -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" <<'EOSQL' || true
+UPDATE clients SET grants = '{0,2}', skip_authorization = true, endorsed = true WHERE client_id = 'console';
+EOSQL
 
     log_success "OAuth setup completed"
 else

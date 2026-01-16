@@ -263,7 +263,7 @@ format_size() {
 get_file_size() {
     local file="$1"
     if [[ -f "$file" ]]; then
-        stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "0"
+        stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "0"
     else
         echo "0"
     fi

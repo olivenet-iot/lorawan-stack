@@ -236,7 +236,7 @@ log_ok "Activation helper created"
 # =============================================================================
 log_info "Verifying installation..."
 
-python3 -c "
+if python3 -c "
 import sys
 try:
     from Crypto.Cipher import AES
@@ -248,9 +248,7 @@ try:
 except ImportError as e:
     print(f'Import error: {e}')
     sys.exit(1)
-"
-
-if [[ $? -eq 0 ]]; then
+"; then
     log_ok "All dependencies verified"
 else
     log_error "Some dependencies failed to import"

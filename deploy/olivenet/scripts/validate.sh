@@ -183,13 +183,15 @@ check_databases() {
         "accepting"
 
     # Build Redis command with password if set
-    local redis_cmd="redis-cli"
+    local redis_check_cmd
     if [[ -n "${REDIS_PASSWORD:-}" ]]; then
-        redis_cmd="redis-cli -a '$REDIS_PASSWORD' --no-auth-warning"
+        redis_check_cmd="docker exec -e REDISCLI_AUTH=\"\$REDIS_PASSWORD\" $REDIS_CONTAINER redis-cli --no-auth-warning ping"
+    else
+        redis_check_cmd="docker exec $REDIS_CONTAINER redis-cli ping"
     fi
 
     check "Redis ping" \
-        "docker exec $REDIS_CONTAINER $redis_cmd ping" \
+        "$redis_check_cmd" \
         "PONG"
 }
 

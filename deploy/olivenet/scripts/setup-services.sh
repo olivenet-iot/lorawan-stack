@@ -62,27 +62,22 @@ if [[ ! -d "$SYSTEMD_DIR" ]]; then
     exit 1
 fi
 
-# Copy service files
-if [[ -f "$SYSTEMD_DIR/olivenet-tts-backup.service" ]]; then
-    cp "$SYSTEMD_DIR/olivenet-tts-backup.service" /etc/systemd/system/
-    log_ok "Installed olivenet-tts-backup.service"
-else
-    log_warn "olivenet-tts-backup.service not found"
-fi
+# Update paths in service files to match current installation
+INSTALL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+log_info "Updating service files to use installation path: $INSTALL_DIR"
 
-if [[ -f "$SYSTEMD_DIR/olivenet-tts-backup.timer" ]]; then
-    cp "$SYSTEMD_DIR/olivenet-tts-backup.timer" /etc/systemd/system/
-    log_ok "Installed olivenet-tts-backup.timer"
-else
-    log_warn "olivenet-tts-backup.timer not found"
-fi
-
-if [[ -f "$SYSTEMD_DIR/olivenet-tts-monitor.service" ]]; then
-    cp "$SYSTEMD_DIR/olivenet-tts-monitor.service" /etc/systemd/system/
-    log_ok "Installed olivenet-tts-monitor.service"
-else
-    log_warn "olivenet-tts-monitor.service not found"
-fi
+for service_file in "$SYSTEMD_DIR"/olivenet-tts-*.service "$SYSTEMD_DIR"/olivenet-tts-*.timer; do
+    if [[ -f "$service_file" ]]; then
+        # Create a temporary copy with updated paths
+        temp_file=$(mktemp)
+        sed "s|/opt/lorawan-stack|$INSTALL_DIR|g" "$service_file" > "$temp_file"
+        # Copy the updated file to systemd
+        filename=$(basename "$service_file")
+        cp "$temp_file" "/etc/systemd/system/$filename"
+        rm -f "$temp_file"
+        log_ok "Installed $filename (paths updated)"
+    fi
+done
 
 # Reload systemd
 systemctl daemon-reload

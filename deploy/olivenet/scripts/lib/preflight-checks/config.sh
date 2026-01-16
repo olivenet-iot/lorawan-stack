@@ -8,10 +8,10 @@
 # Required environment variables
 REQUIRED_ENV_VARS=(
     "DOMAIN"
-    "ADMIN_EMAIL"
+    "ACME_EMAIL"
     "POSTGRES_PASSWORD"
     "REDIS_PASSWORD"
-    "TTN_LW_CONSOLE_OAUTH_CLIENT_SECRET"
+    "CONSOLE_OAUTH_CLIENT_SECRET"
 )
 
 # Placeholder patterns to detect

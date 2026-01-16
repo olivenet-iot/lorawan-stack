@@ -67,7 +67,7 @@ echo $$ > "$LOCK_FILE"
 START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Run backup and capture output
-"$BACKUP_SCRIPT" --no-color > "$OUTPUT_FILE" 2>&1
+NO_COLOR=true "$BACKUP_SCRIPT" > "$OUTPUT_FILE" 2>&1
 EXIT_CODE=$?
 
 # Get end time
