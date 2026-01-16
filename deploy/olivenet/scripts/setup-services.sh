@@ -63,7 +63,7 @@ if [[ ! -d "$SYSTEMD_DIR" ]]; then
 fi
 
 # Update paths in service files to match current installation
-INSTALL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+INSTALL_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 log_info "Updating service files to use installation path: $INSTALL_DIR"
 
 for service_file in "$SYSTEMD_DIR"/olivenet-tts-*.service "$SYSTEMD_DIR"/olivenet-tts-*.timer; do
